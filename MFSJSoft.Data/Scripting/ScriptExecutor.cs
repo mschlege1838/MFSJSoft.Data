@@ -9,6 +9,60 @@ using MFSJSoft.Data.Scripting.Model;
 namespace MFSJSoft.Data.Scripting
 {
 
+    /// <summary>
+    /// Core class for executing SQL scripts within applications. Provides convenient integration between 
+    /// SQL script files and application code. This class will call on application code within the script 
+    /// execution context as configured.
+    /// </summary>
+    /// 
+    /// 
+    /// <remarks>
+    /// <para>The <c>ScriptExecutor</c> class provides a convenient integration between application code
+    /// and SQL scripts. The processing model uses directives declared within SQL comments to control
+    /// how scripts are executed.</para>
+    /// 
+    /// <para>Directives are specified in an SQL line or block comment. Line directives are specified 
+    /// as follows:
+    /// <code lang="sql">
+    /// ---- #[DirectiveName]: [ArgumentList]
+    /// </code>
+    /// Block directives are specified as follows:
+    /// <code lang="sql">
+    /// /* ** #[DirectiveName]: [ArgumentList] */
+    /// </code>
+    /// Zero or more horizontal whitespace characters can appear where there are single spaces in the
+    /// examples above. Note a line directive must end with a newline sequence (CR, LF, or CRLF), and block 
+    /// directives can contain arbitrary newlines, but must end with the <c>*/</c> sequence.</para>
+    /// 
+    /// <para>Argument lists are comma separated values. Argument values that contain only alphanumeric 
+    /// characters can be specified as-is. All other values must be specified as quoted strings.</para>
+    /// 
+    /// <para>Quoted strings are enclosed in single (<c>'</c>) or double (<c>"</c>) quotes. Any character preceded 
+    /// with a backslash (<c>\</c>) in a quoted string will be escaped (emitted as-is) by the lexer. If two of the 
+    /// same quotation characters used to open the string are found in tandum within the string, they
+    /// will also be escaped as a single quote character.</para>
+    /// 
+    /// <para>Quoted strings cannot contain newline sequences. If newlines are required in a quoted 
+    /// string value, use triple quotes to open and close the string (I.e. <c>"""</c> or <c>'''</c>). The same escape 
+    /// rules above apply to triple-quoted string values.</para>
+    /// 
+    /// <para>Scripts are initialized as they are passed to the 
+    /// <see cref="ScriptExecutor.ExecuteScript(string, IScriptProcessor, string)">ExecuteScript</see>
+    /// method. After a script is initialized, its state is saved for subsequent execution; application restart is
+    /// required to observe changes in the underlying script source code.</para>
+    /// 
+    /// <para>The default statement terminator is the semicolon (<c>;</c>), but can be
+    /// any character sequence, so long as it does not contain characters used by <c>ScriptExecutor</c> to
+    /// process directives. Statement terminators can be specified on a per-script basis to 
+    /// <see cref="ScriptExecutor.ExecuteScript(string, IScriptProcessor, string)">ExecuteScript</see>, but are only
+    /// used to compile the script the first time it is initalized.</para>
+    /// 
+    /// <para>Generally application code will use the 
+    /// <see cref="MFSJSoft.Data.Scripting.Processor.CompositeProcessor">CompositeProcessor</see>
+    /// for script execution, and pass in relevant predefined 
+    /// <see cref="MFSJSoft.Data.Scripting.Processor.IDirectiveProcessor">IDirectiveProcessors</see>
+    /// depending on directives used within the script to be executed.</para>
+    /// </remarks>
     public class ScriptExecutor
     {
 
