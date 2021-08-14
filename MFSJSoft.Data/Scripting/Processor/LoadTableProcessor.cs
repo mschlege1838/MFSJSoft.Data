@@ -12,6 +12,8 @@ using MFSJSoft.Data.Util;
 
 namespace MFSJSoft.Data.Scripting.Processor
 {
+
+
     public class LoadTableProcessor : IDirectiveProcessor
     {
 
@@ -23,11 +25,15 @@ namespace MFSJSoft.Data.Scripting.Processor
 
         
         readonly WithLoader callback;
+        readonly string createTempPrefix;
+        readonly IDictionary<DbType, string> dbTypeMapping;
 
 
-        public LoadTableProcessor(WithLoader callback)
+        public LoadTableProcessor(WithLoader callback, string createTempPrefix = "CREATE TABLE", IDictionary<DbType, string> dbTypeMapping = null)
         {
             this.callback = callback ?? throw new ArgumentNullException(nameof(callback));
+            this.createTempPrefix = createTempPrefix;
+            this.dbTypeMapping = dbTypeMapping;
         }
 
 
@@ -92,7 +98,7 @@ namespace MFSJSoft.Data.Scripting.Processor
             return false;
         }
 
-        static DbParameterData GetParameter(string arg, int i, ScriptDirective directive, DbProviderFactory providerFactory)
+        DbParameterData GetParameter(string arg, int i, ScriptDirective directive, DbProviderFactory providerFactory)
         {
             var toks = ParamSplitPattern.Split(arg.Trim());
             if (toks.Length < 2)
@@ -181,9 +187,9 @@ namespace MFSJSoft.Data.Scripting.Processor
             return result.ToString();
         }
 
-        static string ToCreateStatement(string tableName, IList<DbParameterData> parameters)
+        string ToCreateStatement(string tableName, IList<DbParameterData> parameters)
         {
-            var result = new StringBuilder("CREATE TABLE \"").Append(tableName).Append("\" (");
+            var result = new StringBuilder(createTempPrefix).Append('"').Append(tableName).Append("\" (");
 
             var first = true;
             foreach (var pData in parameters)
@@ -201,8 +207,13 @@ namespace MFSJSoft.Data.Scripting.Processor
             return result.ToString();
         }
 
-        static string ToColumnDef(DbType type, int size = 0, byte scale = 0)
+        string ToColumnDef(DbType type, int size = 0, byte scale = 0)
         {
+            if (dbTypeMapping is not null && dbTypeMapping.ContainsKey(type))
+            {
+                return string.Format(dbTypeMapping[type], size, scale);
+            }
+
             return type switch
             {
                 DbType.DateTimeOffset => "INTERVAL",
