@@ -87,16 +87,28 @@ namespace MFSJSoft.Data.Scripting
         internal static readonly RegexReplacer DirectivePlaceholderReplacer = new(new Regex(@"\{([0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})\}"));
 
         readonly IScriptResolver resolver;
+        readonly IDictionary<Type, object> processorConfig;
         readonly IDictionary<(string, object), IList<InitializedStatement>> compiledScripts = new Dictionary<(string, object), IList<InitializedStatement>>();
 
-        public ScriptExecutor(IScriptResolver resolver = null)
+
+        public ScriptExecutor(IScriptResolver resolver = null, IDictionary<Type, object> processorConfig = null)
         {
             this.resolver = resolver;
+            this.processorConfig = processorConfig;
         }
 
         public void ExecuteScript(string name, IScriptProcessor processor)
         {
-            var scriptKey = (name, processor is IIdentifiable identifiable ? identifiable.Id : processor.GetType());
+            var processorType = processor.GetType();
+            var scriptKey = (name, processor is IIdentifiable identifiable ? identifiable.Id : processorType);
+            if (processorConfig is not null && processorConfig.ContainsKey(processorType))
+            {
+                processor.InitProcessor(processorConfig[processorType]);
+            }
+            else
+            {
+                processor.InitProcessor(null);
+            }
 
             // Retrieve script.
             IList<InitializedStatement> script;

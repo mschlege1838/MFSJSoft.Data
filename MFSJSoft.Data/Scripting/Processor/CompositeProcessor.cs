@@ -9,15 +9,14 @@ namespace MFSJSoft.Data.Scripting.Processor
 
     public class CompositeProcessorContext
     {
-        internal CompositeProcessorContext(DbProviderFactory providerFactory, DbConnection connection, DbTransaction transaction, bool noTimeout)
+        internal CompositeProcessorContext(DbConnection connection, DbTransaction transaction, bool noTimeout)
         {
-            ProviderFactory = providerFactory;
             Connection = connection;
             Transaction = transaction;
             NoTimeout = noTimeout;
         }
 
-        public DbProviderFactory ProviderFactory { get; }
+        public DbProviderFactory ProviderFactory { get; internal set; }
         public DbConnection Connection { get; }
         public DbTransaction Transaction { get; }
         public bool NoTimeout { get; }
@@ -35,6 +34,12 @@ namespace MFSJSoft.Data.Scripting.Processor
         }
     }
 
+    public class CompositeProcessorConfiguration
+    {
+        public DbProviderFactory ProviderFactory { get; set; }
+        public IDictionary<Type, object> DirectiveConfiguration { get; set; }
+    }
+
     public class CompositeProcessor : IScriptProcessor
     {
 
@@ -43,7 +48,7 @@ namespace MFSJSoft.Data.Scripting.Processor
 
         public CompositeProcessor(DbProviderFactory providerFactory, DbConnection connection, DbTransaction transaction, bool noTimeout, params IDirectiveProcessor[] processors)
         {
-            context = new CompositeProcessorContext(providerFactory ?? throw new ArgumentNullException(nameof(providerFactory)), connection ?? throw new ArgumentNullException(nameof(connection)), transaction, noTimeout);
+            context = new CompositeProcessorContext(connection ?? throw new ArgumentNullException(nameof(connection)), transaction, noTimeout) { ProviderFactory = providerFactory };
             this.processors = processors;
         }
 
@@ -60,6 +65,50 @@ namespace MFSJSoft.Data.Scripting.Processor
         public CompositeProcessor(DbProviderFactory providerFactory, DbConnection connection, params IDirectiveProcessor[] processors) : this(providerFactory, connection, null, false, processors)
         {
             
+        }
+
+        public CompositeProcessor(DbConnection connection, bool noTimeout, params IDirectiveProcessor[] processors) : this(null, connection, null, noTimeout, processors)
+        {
+
+        }
+
+        public CompositeProcessor(DbConnection connection, DbTransaction transaction, params IDirectiveProcessor[] processors) : this(null, connection, transaction, false, processors)
+        {
+
+        }
+
+        public CompositeProcessor(DbConnection connection, params IDirectiveProcessor[] processors) : this(null, connection, null, false, processors)
+        {
+
+        }
+
+        public void InitProcessor(object configuration)
+        {
+            if (configuration is not null && configuration is CompositeProcessorConfiguration lcfg)
+            {
+                if (context.ProviderFactory is null && lcfg.ProviderFactory is not null)
+                {
+                    context.ProviderFactory = lcfg.ProviderFactory;
+                }
+
+                foreach (var processor in processors)
+                {
+                    var processorType = processor.GetType();
+                    if (lcfg.DirectiveConfiguration is not null && lcfg.DirectiveConfiguration.ContainsKey(processorType))
+                    {
+                        processor.InitProcessor(lcfg.DirectiveConfiguration[processorType]);
+                    }
+                    else
+                    {
+                        processor.InitProcessor(null);
+                    }
+                }
+            }
+            
+            if (context.ProviderFactory is null)
+            {
+                throw new NullReferenceException($"Provider Factory must either be provided in a constructor of {typeof(CompositeProcessorContext)}, or in the applicable global configuration of parent {typeof(ScriptExecutor)}.");
+            }
         }
 
         public DirectiveInitialization InitDirective(ScriptDirective directive)

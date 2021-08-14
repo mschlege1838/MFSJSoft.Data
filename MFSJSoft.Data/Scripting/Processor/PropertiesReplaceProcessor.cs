@@ -17,6 +17,11 @@ namespace MFSJSoft.Data.Scripting.Processor
             this.deferRuntime = deferRuntime;
         }
 
+        public void InitProcessor(object configuration)
+        {
+            Init(configuration);
+        }
+
         public DirectiveInitialization InitDirective(CompositeProcessorContext context, ScriptDirective directive)
         {
             bool negated;

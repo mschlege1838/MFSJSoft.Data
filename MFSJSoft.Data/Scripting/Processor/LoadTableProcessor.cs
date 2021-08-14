@@ -13,6 +13,11 @@ using MFSJSoft.Data.Util;
 namespace MFSJSoft.Data.Scripting.Processor
 {
 
+    public class LoadTableProcessorConfiguration
+    {
+        public string CreateTempPrefix { get; set; }
+        public IDictionary<DbType, string> DbTypeMapping { get; set; }
+    }
 
     public class LoadTableProcessor : IDirectiveProcessor
     {
@@ -25,8 +30,8 @@ namespace MFSJSoft.Data.Scripting.Processor
 
         
         readonly WithLoader callback;
-        readonly string createTempPrefix;
-        readonly IDictionary<DbType, string> dbTypeMapping;
+        string createTempPrefix;
+        IDictionary<DbType, string> dbTypeMapping;
 
 
         public LoadTableProcessor(WithLoader callback, string createTempPrefix = "CREATE TABLE", IDictionary<DbType, string> dbTypeMapping = null)
@@ -36,6 +41,20 @@ namespace MFSJSoft.Data.Scripting.Processor
             this.dbTypeMapping = dbTypeMapping;
         }
 
+        public void InitProcessor(object configuration)
+        {
+            if (configuration is not null && configuration is LoadTableProcessorConfiguration lcfg)
+            {
+                if (createTempPrefix is null)
+                {
+                    createTempPrefix = lcfg.CreateTempPrefix ?? "CREATE TABLE";
+                }
+                if (dbTypeMapping is null && lcfg.DbTypeMapping is not null)
+                {
+                    dbTypeMapping = lcfg.DbTypeMapping;
+                }
+            }
+        }
 
         public DirectiveInitialization InitDirective(CompositeProcessorContext context, ScriptDirective directive)
         {

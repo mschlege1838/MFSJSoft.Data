@@ -15,6 +15,11 @@ namespace MFSJSoft.Data.Scripting.Processor
 
         }
 
+        public void InitProcessor(object configuration)
+        {
+            Init(configuration);
+        }
+
         public DirectiveInitialization InitDirective(CompositeProcessorContext context, ScriptDirective directive)
         {
             bool negated;

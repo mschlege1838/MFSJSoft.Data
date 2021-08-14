@@ -2,16 +2,37 @@
 
 namespace MFSJSoft.Data.Scripting.Processor
 {
+
+    public class PropertiesDirectiveConfiguration
+    {
+        public IProperties Properties { get; set; }
+    }
+
     public abstract class PropertiesEvaluator
     {
 
-        protected readonly IProperties properties;
+        IProperties properties;
 
-        public PropertiesEvaluator(IProperties properties)
+        public PropertiesEvaluator(IProperties properties = null)
         {
-            this.properties = properties ?? throw new ArgumentNullException(nameof(properties));
+            this.properties = properties;
         }
 
+        protected void Init(object configuration)
+        {
+            if (configuration is not null && configuration is PropertiesDirectiveConfiguration lcfg)
+            {
+                if (properties is null && lcfg.Properties is not null)
+                {
+                    properties = lcfg.Properties;
+                }
+            }
+
+            if (properties is null)
+            {
+                throw new NullReferenceException($"Properties must be either passed to the constructor, or given as global configuration for properties directives: {GetType()}");
+            }
+        }
 
         protected bool Eval(string propName, string propValue, bool negate)
         {

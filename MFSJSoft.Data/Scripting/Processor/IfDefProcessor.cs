@@ -6,7 +6,7 @@ namespace MFSJSoft.Data.Scripting.Processor
         public const string DirectiveName = "IfDef";
         public const string NegatedDirectiveName = "IfNotDef";
 
-        public IfDefProcessor(IProperties properties) : base(DirectiveName, NegatedDirectiveName, properties, false)
+        public IfDefProcessor(IProperties properties = null) : base(DirectiveName, NegatedDirectiveName, properties, false)
         {
 
         }

@@ -19,6 +19,11 @@ namespace MFSJSoft.Data.Scripting.Processor
             this.callback = callback ?? throw new ArgumentNullException(nameof(callback));
         }
 
+        public void InitProcessor(object config)
+        {
+
+        }
+
         public DirectiveInitialization InitDirective(CompositeProcessorContext context, ScriptDirective directive)
         {
             if (directive.Name != DirectiveName)
