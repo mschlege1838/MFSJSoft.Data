@@ -9,78 +9,6 @@ using MFSJSoft.Data.Scripting.Model;
 namespace MFSJSoft.Data.Scripting
 {
 
-    class InitializedStatement
-    {
-        internal InitializedStatement(string text, IList<InitializedDirective> directives, IDictionary<string, (InitializedDirective, int)> deferredDirectives, string fileName, int lineNumber)
-        {
-            Text = text;
-            Directives = directives;
-            DeferredDirectives = deferredDirectives;
-            FileName = fileName;
-            LineNumber = lineNumber;
-        }
-
-        internal string Text { get;}
-        internal IList<InitializedDirective> Directives { get; }
-        internal IDictionary<string, (InitializedDirective, int)> DeferredDirectives { get; }
-        internal string FileName { get; }
-        internal int LineNumber { get; }
-
-        internal (string, IList<InitializedDirective>) GetExecutionParams(IScriptProcessor processor)
-        {
-            if (DeferredDirectives.Count == 0)
-            {
-                return (Text, Directives);
-            }
-            else
-            {
-                var setupDirectives = new List<InitializedDirective>(Directives);
-                var text = ScriptExecutor.DirectivePlaceholderReplacer.Process(Text, (m, buf) =>
-                {
-                    var directiveId = m.Groups[1].Value;
-                    (var initState, var targetIndex) = DeferredDirectives[directiveId];
-
-                    var initialization = processor.SetupDirective(initState.Directive, initState.InitializedState);
-                    if (initialization is null)
-                    {
-                        throw new InvalidOperationException();
-                    }
-
-                    if ((initialization.Action & DirectiveInitializationAction.REPLACE_TEXT) == DirectiveInitializationAction.REPLACE_TEXT)
-                    {
-                        buf.Append(initialization.ReplacementText);
-                    }
-
-                    if ((initialization.Action & DirectiveInitializationAction.NO_STORE) == DirectiveInitializationAction.NO_STORE)
-                    {
-                        setupDirectives.RemoveAt(targetIndex);
-                    }
-                    else
-                    {
-                        setupDirectives[targetIndex] = new InitializedDirective(initState.Directive, directiveId, initialization.InitializedState);
-                    }
-
-                });
-
-                return (text, setupDirectives);
-            }
-        }
-    }
-
-    class InitializedDirective
-    {
-        internal InitializedDirective(ScriptDirective directive, string directiveId, object initializedState)
-        {
-            Directive = directive;
-            DirectiveId = directiveId;
-            InitializedState = initializedState;
-        }
-
-        internal ScriptDirective Directive { get; }
-        internal string DirectiveId { get; }
-        internal object InitializedState { get; }
-    }
-
     public class ScriptExecutor
     {
 
@@ -261,5 +189,76 @@ namespace MFSJSoft.Data.Scripting
         }
     }
 
-    
+
+    class InitializedStatement
+    {
+        internal InitializedStatement(string text, IList<InitializedDirective> directives, IDictionary<string, (InitializedDirective, int)> deferredDirectives, string fileName, int lineNumber)
+        {
+            Text = text;
+            Directives = directives;
+            DeferredDirectives = deferredDirectives;
+            FileName = fileName;
+            LineNumber = lineNumber;
+        }
+
+        internal string Text { get; }
+        internal IList<InitializedDirective> Directives { get; }
+        internal IDictionary<string, (InitializedDirective, int)> DeferredDirectives { get; }
+        internal string FileName { get; }
+        internal int LineNumber { get; }
+
+        internal (string, IList<InitializedDirective>) GetExecutionParams(IScriptProcessor processor)
+        {
+            if (DeferredDirectives.Count == 0)
+            {
+                return (Text, Directives);
+            }
+            else
+            {
+                var setupDirectives = new List<InitializedDirective>(Directives);
+                var text = ScriptExecutor.DirectivePlaceholderReplacer.Process(Text, (m, buf) =>
+                {
+                    var directiveId = m.Groups[1].Value;
+                    (var initState, var targetIndex) = DeferredDirectives[directiveId];
+
+                    var initialization = processor.SetupDirective(initState.Directive, initState.InitializedState);
+                    if (initialization is null)
+                    {
+                        throw new InvalidOperationException();
+                    }
+
+                    if ((initialization.Action & DirectiveInitializationAction.REPLACE_TEXT) == DirectiveInitializationAction.REPLACE_TEXT)
+                    {
+                        buf.Append(initialization.ReplacementText);
+                    }
+
+                    if ((initialization.Action & DirectiveInitializationAction.NO_STORE) == DirectiveInitializationAction.NO_STORE)
+                    {
+                        setupDirectives.RemoveAt(targetIndex);
+                    }
+                    else
+                    {
+                        setupDirectives[targetIndex] = new InitializedDirective(initState.Directive, directiveId, initialization.InitializedState);
+                    }
+
+                });
+
+                return (text, setupDirectives);
+            }
+        }
+    }
+
+    class InitializedDirective
+    {
+        internal InitializedDirective(ScriptDirective directive, string directiveId, object initializedState)
+        {
+            Directive = directive;
+            DirectiveId = directiveId;
+            InitializedState = initializedState;
+        }
+
+        internal ScriptDirective Directive { get; }
+        internal string DirectiveId { get; }
+        internal object InitializedState { get; }
+    }
 }
