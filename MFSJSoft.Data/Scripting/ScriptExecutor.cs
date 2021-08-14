@@ -97,7 +97,7 @@ namespace MFSJSoft.Data.Scripting
             this.processorConfig = processorConfig;
         }
 
-        public void ExecuteScript(string name, IScriptProcessor processor)
+        public void ExecuteScript(string name, IScriptProcessor processor, string statementTerminator = null)
         {
             var processorType = processor.GetType();
             var scriptKey = (name, processor is IIdentifiable identifiable ? identifiable.Id : processorType);
@@ -134,7 +134,7 @@ namespace MFSJSoft.Data.Scripting
                 }
                 else
                 {
-                    source = new ScriptSource(File.ReadAllText(name), name);
+                    source = new ScriptSource(File.ReadAllText(name), name, statementTerminator);
                 }
 
                 // Process Statements.
