@@ -2,7 +2,7 @@
 namespace MFSJSoft.Data
 {
 	/// <summary>
-	/// IProperties represents a generic read-only accessor to string-valued properties.
+	/// Represents a generic read-only accessor to string-valued properties.
 	/// </summary>
     public interface IProperties
     {

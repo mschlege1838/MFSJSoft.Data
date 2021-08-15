@@ -5,16 +5,17 @@ using System.Text;
 using System.Text.RegularExpressions;
 
 using MFSJSoft.Data.Scripting.Model;
+using MFSJSoft.Data.Scripting.Processor;
 
 namespace MFSJSoft.Data.Scripting
 {
 
     /// <summary>
-    /// Core class for executing SQL scripts within applications. Provides convenient integration between 
+    /// <para>Core class for executing SQL scripts within applications. Provides convenient integration between 
     /// SQL script files and application code. This class will call on application code within the script 
-    /// execution context as configured.
+    /// execution context as configured.</para>
     /// </summary>
-    /// 
+    ///
     /// 
     /// <remarks>
     /// <para>The <c>ScriptExecutor</c> class provides a convenient integration between application code
@@ -57,11 +58,36 @@ namespace MFSJSoft.Data.Scripting
     /// <see cref="ScriptExecutor.ExecuteScript(string, IScriptProcessor, string)">ExecuteScript</see>, but are only
     /// used to compile the script the first time it is initalized.</para>
     /// 
-    /// <para>Generally application code will use the 
-    /// <see cref="MFSJSoft.Data.Scripting.Processor.CompositeProcessor">CompositeProcessor</see>
-    /// for script execution, and pass in relevant predefined 
-    /// <see cref="MFSJSoft.Data.Scripting.Processor.IDirectiveProcessor">IDirectiveProcessors</see>
-    /// depending on directives used within the script to be executed.</para>
+    /// <para>Generally application code will use the <see cref="CompositeProcessor" /> for script execution, and pass 
+    /// in relevant predefined <see cref="IDirectiveProcessor">IDirectiveProcessors</see> depending on directives used 
+    /// within the script to be executed.</para>
+    /// 
+    /// <para>The predefined directives are summarized below:</para>
+    /// <list type="bullet">
+    /// <item>
+    ///     <term><c>#Callback: statementName?</c></term>
+    /// </item>
+    /// <item>
+    ///     <term><c>#ExecuteIf: propertyName, value?</c></term>
+    ///     <description>
+    ///     Conditionally executes the statement on which it is defined. With one argument, will test whether the 
+    ///     <c>propertyName</c> given is defined, and not equal to (ignoring case) <c>false</c>. With two arguments, will 
+    ///     test whether the property is equal to the given value. If the test passes, the statement will be executed, 
+    ///     otherwise, it will be skipped. Properties are supplied in <see cref="IProperties"/> passed to the
+    ///     <see cref="ExecuteIfProcessor" />.
+    ///     </description>
+    /// </item>
+    /// <item>
+    ///     <term><c>#IfDef: propertyName, propertyValue?, replaceIfTrueValue?, replaceIfFalseValue?</c></term>
+    ///     <description></description>
+    /// </item>
+    /// <item>
+    ///     <term><c>#If: propertyName, propertyValue?, replaceIfTrueValue?, replaceIfFalseValue?</c></term>
+    /// </item>
+    /// <item>
+    ///     <term><c>#LoadTable: tableName, createTemporary, columnDefs...</c></term>
+    /// </item>
+    /// </list>
     /// </remarks>
     public class ScriptExecutor
     {
