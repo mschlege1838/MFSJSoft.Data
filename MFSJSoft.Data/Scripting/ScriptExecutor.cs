@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Data;
 using System.IO;
 using System.Text;
 using System.Text.RegularExpressions;
@@ -66,26 +67,50 @@ namespace MFSJSoft.Data.Scripting
     /// <list type="bullet">
     /// <item>
     ///     <term><c>#Callback: statementName?</c></term>
+    ///     <description>
+    ///     Passes the statement text with the given <c>statementName</c> back to application code through an 
+    ///     <see cref="CallbackProcessor.ExecuteStatement">ExecuteStatement</see> delegate registered with a
+    ///     <see cref="CallbackProcessor" />. It is up to application code to create and execute an appropriate
+    ///     <see cref="IDbCommand"/>.
+    ///     </description>
     /// </item>
     /// <item>
-    ///     <term><c>#ExecuteIf: propertyName, value?</c></term>
+    ///     <term><c>#ExecuteIf: propertyName, propertyValue?</c></term>
     ///     <description>
-    ///     Conditionally executes the statement on which it is defined. With one argument, will test whether the 
-    ///     <c>propertyName</c> given is defined, and not equal to (ignoring case) <c>false</c>. With two arguments, will 
-    ///     test whether the property is equal to the given value. If the test passes, the statement will be executed, 
-    ///     otherwise, it will be skipped. Properties are supplied in <see cref="IProperties"/> passed to the
+    ///     Conditionally executes the statement on which it is defined. With one argument, will test whether the value
+    ///     of the given <c>propertyName</c> is defined, and not equal to (ignoring case) <c>false</c>. With two arguments,
+    ///     will test whether the property is equal to the given <c>propertyValue</c>. If the test passes, the statement will
+    ///     be executed, otherwise, it will be skipped. Properties are supplied in <see cref="IProperties"/> passed to the
     ///     <see cref="ExecuteIfProcessor" />.
     ///     </description>
     /// </item>
     /// <item>
-    ///     <term><c>#IfDef: propertyName, propertyValue?, replaceIfTrueValue?, replaceIfFalseValue?</c></term>
-    ///     <description></description>
+    ///     <term><c>#If[Not]: propertyName, propertyValue?, ifTrueValue?, ifFalseValue?</c></term>
+    ///     <description>
+    ///     Conditionally inserts the given <c>ifTrueValue</c> in place of this directive in the statement text. With 
+    ///     two arguments, the <c>ifTrueValue</c> will be inserted if the value of the given <c>propertyName</c> is defined 
+    ///     and not equal to (ignoring case) <c>false</c>. With three arguments, the <c>ifTrueValue</c> will be inserted
+    ///     if the property is equal to <c>propertyValue</c>. With four arguments, the given <c>ifFalseValue</c> will be 
+    ///     inserted the property is not equal to <c>propertyValue</c>. If the asterick (<c>*</c>) is given as 
+    ///     <c>propertyValue</c>, the "if defined, not <c>false</c>" evaluation performed with the two-argment form is
+    ///     executed instead of a string-literal comparison. Properties are supplied in <see cref="IProperties"/> passed
+    ///     to the <see cref="IfProcessor"/>.
+    ///     </description>
     /// </item>
     /// <item>
-    ///     <term><c>#If: propertyName, propertyValue?, replaceIfTrueValue?, replaceIfFalseValue?</c></term>
+    ///     <term><c>#If[Not]Def: propertyName, propertyValue?, ifTrueValue, ifFalseValue?</c></term>
+    ///     <description>
+    ///     Identical to the <c>If[Not]</c> directive above, except only executed once, when the script is first compiled.
+    ///     Use this form for static properties that won't change over the lifetime of the application. Use the previous
+    ///     form if evaluation is to be done based upon properties to be supplied at runtime.  Properties are supplied in 
+    ///     <see cref="IProperties"/> passed to the <see cref="IfDefProcessor"/>
+    ///     </description>
     /// </item>
     /// <item>
     ///     <term><c>#LoadTable: tableName, createTemporary, columnDefs...</c></term>
+    ///     <description>
+    ///     
+    ///     </description>
     /// </item>
     /// </list>
     /// </remarks>
