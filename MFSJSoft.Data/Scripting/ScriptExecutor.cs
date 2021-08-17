@@ -1,12 +1,14 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Data;
+using System.Data.Common;
 using System.IO;
 using System.Text;
 using System.Text.RegularExpressions;
 
 using MFSJSoft.Data.Scripting.Model;
 using MFSJSoft.Data.Scripting.Processor;
+using MFSJSoft.Data.Util;
 
 namespace MFSJSoft.Data.Scripting
 {
@@ -110,6 +112,56 @@ namespace MFSJSoft.Data.Scripting
     ///     <term><c>#LoadTable: tableName, createTemporary, columnDefs...</c></term>
     ///     <description>
     ///     
+    ///     <para>Initializes a <see cref="DbBatchLoader"/>, based on the given <c>tableName</c> and <c>columnDefs</c> 
+    ///     and passes back to a <see cref="LoadTableProcessor.WithLoader">WithLoader</see> callback with the given 
+    ///     <c>tableName</c>. The <c>createTemporary</c> argument must be <c>true</c> or <c>false</c>. If <c>true</c>, 
+    ///     a temporary table of the given <c>tableName</c> will be implicitly created. If <c>false</c>, the given 
+    ///     <c>tableName</c> must exist within scope of the current database session.</para>
+    ///     
+    ///     <para>The <c>columnDefs</c> portion of this directive's argument list is variadic, and each value must be 
+    ///     specified as a quoted string. Values are a comma-separated list of two, three, or four values:</para>
+    ///     <list type="number">
+    ///     <item>
+    ///         <term><c>name</c> (Required)</term>
+    ///         <description>
+    ///         The target table column name. When translated to a parameter, the parameter name will be this with an at 
+    ///         (<c>@</c>) character prepended.
+    ///         </description>
+    ///     </item>
+    ///     <item>
+    ///         <term><c>Type</c> (Required)</term>
+    ///         <description>
+    ///         The database type of the target column. Must be specified as a string-literal matching the name of one of
+    ///         the <see cref="DbType" /> enumeration contstants.
+    ///         </description>
+    ///     </item>
+    ///     <item>
+    ///         <term><c>size</c> OR <c>precision</c> (Optional)</term>
+    ///         <description>
+    ///         In the 3-value form, the max size of the column type (typically for string data types). In the 3-value form,
+    ///         the precision of a numeric data type.
+    ///         </description>
+    ///     </item>
+    ///     <item>
+    ///         <term><c>scale</c></term>
+    ///         <description>The scale for a numeric data type.</description>
+    ///     </item>
+    ///     </list>
+    ///     
+    ///     <para>Client code is responsible for assigning <see cref="DbBatchLoader.InputData">InputData</see> to the
+    ///     <see cref="DbBatchLoader" /> and defining the <see cref="DbBatchLoader.RowDelegate" /> callback to update
+    ///     <see cref="DataRow" /> instances with application data.</para>
+    ///     
+    ///     <para>Client code is also responsible for calling <see cref="DbBatchLoader.Execute" /> once all required
+    ///     properties are defined. The directive will ultimately be processed through a <see cref="DbDataAdapter"/>
+    ///     with its <see cref="DbDataAdapter.UpdateBatchSize"/> set to <c>0</c>. See the <see cref="DbBatchLoader" />
+    ///     for further details.</para>
+    ///     
+    ///     <para>The default mapping between <see cref="DbType"/> constants and SQL data types used for implicit
+    ///     temporary table creation follows semantics that are compatible with SQL Server, but strives to be as
+    ///     ANSI-friendly as possible. Both these and the prefix used for creating temporary tables (which follows
+    ///     SQL Server semantics only) can be overriden in global properties, and as optional arguments to the 
+    ///     constructor of <see cref="LoadTableProcessor" /></para>
     ///     </description>
     /// </item>
     /// </list>
