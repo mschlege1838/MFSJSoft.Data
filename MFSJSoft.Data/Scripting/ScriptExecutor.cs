@@ -257,6 +257,11 @@ namespace MFSJSoft.Data.Scripting
                     source = new ScriptSource(File.ReadAllText(name), name);
                 }
 
+                if (source is null)
+                {
+                    throw new ScriptNotFoundException(name);
+                }
+
                 // Process Statements.
                 foreach (var statement in source.Parse())
                 {
