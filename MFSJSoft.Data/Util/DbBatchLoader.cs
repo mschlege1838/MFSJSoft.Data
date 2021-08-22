@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Data;
 using System.Data.Common;
+using System.Xml;
 
 namespace MFSJSoft.Data.Util
 {
@@ -35,6 +36,31 @@ namespace MFSJSoft.Data.Util
 
         public void Execute()
         {
+            if (RowDelegate is null)
+            {
+                throw new ArgumentNullException(nameof(RowDelegate));
+            }
+            if (InputData is null)
+            {
+                throw new ArgumentNullException(nameof(InputData));
+            }
+            if (InsertStatement is null)
+            {
+                throw new ArgumentNullException(nameof(InsertStatement));
+            }
+
+
+
+            void ProcessRows(DataTable table)
+            {
+                foreach (var item in InputData)
+                {
+                    var row = table.NewRow();
+                    RowDelegate(row, item);
+                    table.Rows.Add(row);
+                }
+            }
+
             if (CreateStatement is not null)
             {
                 using var command = CreateCommand(CreateStatement);
@@ -45,7 +71,7 @@ namespace MFSJSoft.Data.Util
             {
 
                 using var selectCommand = CreateCommand(SelectStatement ?? throw new ArgumentNullException(nameof(SelectStatement)));
-                using var insertCommand = CreateCommand(InsertStatement ?? throw new ArgumentNullException(nameof(InsertStatement)));
+                using var insertCommand = CreateCommand(InsertStatement);
 
                 var adapter = providerFactory.CreateDataAdapter();
                 adapter.SelectCommand = selectCommand;
@@ -62,25 +88,44 @@ namespace MFSJSoft.Data.Util
                 var table = new DataTable();
                 adapter.Fill(table);
 
-                if (RowDelegate is null)
-                {
-                    throw new ArgumentNullException(nameof(RowDelegate));
-                }
-
-                foreach (var item in InputData ?? throw new ArgumentNullException(nameof(InputData)))
-                {
-                    var row = table.NewRow();
-                    RowDelegate(row, item);
-                    table.Rows.Add(row);
-                }
+                ProcessRows(table);
 
                 adapter.Update(table);
             }
             else
             {
                 // TODO Warn provider cannot create data adapter; fall back to sequential inserts.
-                // TODO Implement
-                throw new NotImplementedException($"Only implemented for DataAdapters at this time; given provider factory indicates it cannot create adapters: {providerFactory}");
+
+                var table = new DataTable();
+                foreach (var parameter in Parameters)
+                {
+                    var column = new DataColumn
+                    {
+                        ColumnName = parameter.SourceColumn,
+                        DataType = ToType(parameter.DbType)
+                    };
+                    if (parameter.Size > 0)
+                    {
+                        column.MaxLength = parameter.Size;
+                    }
+
+                    table.Columns.Add(column);
+                }
+
+                ProcessRows(table);
+
+                foreach (DataRow row in table.Rows)
+                {
+                    var command = CreateCommand(InsertStatement);
+                    foreach (var parameter in Parameters)
+                    {
+                        var lparam = providerFactory.CreateParameter();
+                        lparam.ParameterName = parameter.ParameterName;
+                        lparam.Value = row[parameter.SourceColumn];
+                        command.Parameters.Add(lparam);
+                    }
+                    command.ExecuteNonQuery();
+                }
             }
         }
 
@@ -97,6 +142,31 @@ namespace MFSJSoft.Data.Util
                 command.CommandTimeout = 0;
             }
             return command;
+        }
+
+        static Type ToType(DbType dbType)
+        {
+            return dbType switch
+            {
+                DbType.DateTimeOffset => typeof(DateTimeOffset),
+                DbType.DateTime or DbType.DateTime2 or DbType.Date or DbType.Time => typeof(DateTime),
+                DbType.Currency or DbType.Decimal or DbType.VarNumeric => typeof(decimal),
+                DbType.Double => typeof(double),
+                DbType.Single => typeof(float),
+                DbType.Guid => typeof(Guid),
+                DbType.Int16 or DbType.Int32 => typeof(int),
+                DbType.UInt16 or DbType.UInt32 => typeof(uint),
+                DbType.Int64 => typeof(long),
+                DbType.UInt64 => typeof(ulong),
+                DbType.Boolean => typeof(bool),
+                DbType.Byte => typeof(byte),
+                DbType.SByte => typeof(sbyte),
+                DbType.Binary => typeof(byte[]),
+                DbType.Object => typeof(object),
+                DbType.Xml => typeof(XmlNode),
+                DbType.AnsiStringFixedLength or DbType.AnsiString or DbType.StringFixedLength or DbType.String or _ => typeof(string)
+
+            };
         }
     }
 }
