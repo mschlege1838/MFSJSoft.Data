@@ -236,10 +236,10 @@ namespace MFSJSoft.Data.Scripting.Processor
 
             return type switch
             {
-                DbType.DateTimeOffset => "INTERVAL",
-                DbType.DateTime or DbType.DateTime2 => "TIMESTAMP",
-                DbType.Date => "DATE",
-                DbType.Time => "TIME",
+                DbType.DateTimeOffset => "datetimeoffset",
+                DbType.DateTime or DbType.DateTime2 => "datetime",
+                DbType.Date => "date",
+                DbType.Time => "time",
                 DbType.Currency => $"DECIMAL({size}, {(scale > 0 ? scale : 4)}",
                 DbType.Decimal => $"DECIMAL({size}, {scale})",
                 DbType.Double => "DOUBLE PRECISION",
@@ -248,14 +248,14 @@ namespace MFSJSoft.Data.Scripting.Processor
                 DbType.Int16 or DbType.Int32 or DbType.UInt16 or DbType.UInt32 => "INTEGER",
                 DbType.Int64 or DbType.UInt64 => "BIGINT",
                 DbType.Boolean or DbType.Byte or DbType.SByte => "SMALLINT",
-                DbType.Binary => $"VARBINARY({size})",
-                DbType.AnsiStringFixedLength => $"CHAR({size})",
-                DbType.AnsiString => $"VARCHAR({size})",
+                DbType.Binary => $"BINARY VARYING({size})",
+                DbType.AnsiStringFixedLength => $"CHARACTER({size})",
+                DbType.AnsiString => $"CHARACTER VARYING({size})",
                 DbType.Object => "BLOB",
-                DbType.StringFixedLength => $"NCHAR({size})",
+                DbType.StringFixedLength => $"NATIONAL CHAR({size})",
                 DbType.VarNumeric => $"NUMERIC({size}, {scale})",
                 DbType.Xml => "XML",
-                DbType.String or _ => $"NCHAR VARYING({size})",
+                DbType.String or _ => $"NATIONAL CHAR VARYING({size})",
             };
         }
 
