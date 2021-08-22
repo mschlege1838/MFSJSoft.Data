@@ -29,9 +29,9 @@ namespace MFSJSoft.Data.Scripting
         /// <summary>
         /// Construct a new <see cref="ScriptSource"/> with the given information.
         /// </summary>
-        /// <param name="source"></param>
-        /// <param name="name"></param>
-        /// <param name="statementTerminator"></param>
+        /// <param name="source">The full script source code as a <see cref="string"/></param>
+        /// <param name="name">The name/file name for this script. (Default = <c>&lt;input&gt;</c></param>
+        /// <param name="statementTerminator">Custom statement terminator this script uses to separate statements.</param>
         public ScriptSource(string source, string name = "<input>", string statementTerminator = DefaultStatementTerminator)
         {
             Source = source ?? throw new ArgumentNullException(nameof(source));
@@ -42,7 +42,7 @@ namespace MFSJSoft.Data.Scripting
             {
                 if (StatementTerminator.IndexOf(ch) != -1)
                 {
-                    throw new ArgumentException($"Terminator cannot contain the character: {ch}", nameof(StatementTerminator));
+                    throw new ArgumentException($"Terminator cannot contain the character: {ch}", nameof(statementTerminator));
                 }
             }
         }
@@ -69,7 +69,8 @@ namespace MFSJSoft.Data.Scripting
         /// Parse this <see cref="ScriptSource"/> into an order <see cref="IList{T}">list</see> of
         /// <see cref="ScriptStatement">ScriptStatements</see>.
         /// </summary>
-        /// <returns></returns>
+        /// <returns>A <see cref="IList{T}">list</see> of <see cref="ScriptStatement">statements</see> in the
+        /// order they appear in the script.</returns>
         public IList<ScriptStatement> Parse()
         {
             var lexer = new ScriptLexer(Source, Name, StatementTerminator);

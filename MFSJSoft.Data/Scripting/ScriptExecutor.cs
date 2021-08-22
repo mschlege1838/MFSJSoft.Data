@@ -201,16 +201,18 @@ namespace MFSJSoft.Data.Scripting
         }
 
         /// <summary>
-        /// Execute the script of the given name.
+        /// Execute the script of the given <c>name</c>.
         /// </summary>
         /// <remarks>
         /// If the given <c>processor</c> also implements <see cref="IScriptResolver"/>, <c>name</c> will be passed to it for resoultion.
         /// If <c>processor</c> does not implement <see cref="IScriptResolver"/>, but an <see cref="IScriptResolver"/> was given in the
         /// constructor, <c>name</c> will be passed to it for resolution. Failing those, an attempt will be made to resolve <c>name</c>
-        /// directly against the <see cref="File.ReadAllText(string)">file syste</see>.
+        /// directly against the <see cref="File.ReadAllText(string)">file system</see>.
         /// </remarks>
-        /// <param name="name"></param>
-        /// <param name="processor"></param>
+        /// <param name="name">Name of the script to be executed. Contextual information (e.g. file path) should be included as required
+        /// for the <see cref="IScriptResolver"/>/local file system.</param>
+        /// <param name="processor"><see cref="IScriptProcessor"/> to process the script. If this also implements <see cref="IScriptResolver"/>,
+        /// it will be used in preference to the <see cref="IScriptResolver"/> passed to the constructor (if any).</param>
         public void ExecuteScript(string name, IScriptProcessor processor)
         {
             var processorKey = processor is IIdentifiable identifiable ? identifiable.Id : processor.GetType();
@@ -280,7 +282,7 @@ namespace MFSJSoft.Data.Scripting
                         
                         if (noStore && deferred)
                         {
-                            throw new InvalidOperationException($"Processor requested deferred setup, but requested directive not be stored for subsequent execution: {directive}");
+                            throw new InvalidOperationException($"Processor requested deferred setup, but requested directive not be stored for subsequent processing: {directive}");
                         }
 
                         if (deferred)
@@ -324,21 +326,6 @@ namespace MFSJSoft.Data.Scripting
 
         }
       
-    }
-
-
-    public class StatementExecutionException : Exception
-    {
-        public StatementExecutionException(string text, string fileName, int lineNumber, Exception rootCause) : base($"Error executing statement: {text} ({fileName}:{lineNumber})", rootCause)
-        {
-            Text = text;
-            FileName = fileName;
-            LineNumber = lineNumber;
-        }
-
-        public string Text { get; }
-        public string FileName { get; }
-        public int LineNumber { get; }
     }
 
 

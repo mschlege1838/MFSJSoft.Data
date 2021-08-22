@@ -22,7 +22,9 @@ namespace MFSJSoft.Data.Scripting.Model
         /// The relevant SQL statement text.
         /// </summary>
         /// <remarks>
-        /// All consecutive whitespace characters are collapsed to a single space. I.e. <c>' '</c>/<c>0x20</c>.
+        /// All consecutive whitespace characters are collapsed to a single space (<c>' '</c>/<c>0x20</c>), all comments are
+        /// stripped, and all directives are either stripped, or replaced with the <see cref="IScriptProcessor">processor</see>-
+        /// requested value.
         /// </remarks>
         public string Text { get; }
 
