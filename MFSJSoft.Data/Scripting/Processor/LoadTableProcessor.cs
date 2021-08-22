@@ -101,12 +101,13 @@ namespace MFSJSoft.Data.Scripting.Processor
             }
 
             var loaderData = (LoadTableInitializedState) initState;
-            var handled = callback(loaderData.TableName, new DbBatchLoader(context.ProviderFactory, context.Connection, context.Transaction, context.NoTimeout)
+            var handled = callback(loaderData.TableName, new DbBatchLoader(context.ProviderFactory, context.Connection, context.Transaction)
             {
                 CreateStatement = loaderData.CreateStatement,
                 SelectStatement = loaderData.SelectStatement,
                 InsertStatement = loaderData.InsertStatement,
-                Parameters = loaderData.Parameters
+                Parameters = loaderData.Parameters,
+                NoTimeout = context.NoTimeout
             });
 
             if (!handled)

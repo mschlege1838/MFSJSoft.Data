@@ -12,17 +12,18 @@ namespace MFSJSoft.Data.Util
 
         readonly DbProviderFactory providerFactory;
 
-        public DbBatchLoader(DbProviderFactory providerFactory, DbConnection connection = null, DbTransaction transaction = null, bool noTimeout = false)
+        public DbBatchLoader(DbProviderFactory providerFactory, DbConnection connection = null, DbTransaction transaction = null)
         {
             this.providerFactory = providerFactory ?? throw new ArgumentNullException(nameof(providerFactory));
             Connection = connection;
             Transaction = transaction;
-            NoTimeout = noTimeout;
         }
 
         public DbConnection Connection { get; set; }
         public DbTransaction Transaction { get; set; }
-        public bool NoTimeout { get; set; }
+
+        public bool NoTimeout { get; set; } = false;
+        public int UpdateBatchSize { get; set; } = 0;
 
         public string CreateStatement { get; set; }
         public string SelectStatement { get; set; }
@@ -49,7 +50,7 @@ namespace MFSJSoft.Data.Util
                 var adapter = providerFactory.CreateDataAdapter();
                 adapter.SelectCommand = selectCommand;
                 adapter.InsertCommand = insertCommand;
-                adapter.UpdateBatchSize = 0;
+                adapter.UpdateBatchSize = UpdateBatchSize;
                 if (Parameters is not null)
                 {
                     foreach (var parameter in Parameters)
