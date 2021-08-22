@@ -50,7 +50,7 @@ namespace MFSJSoft.Data.Scripting.Parser
         }
     }
 
-    public class ScriptParser
+    class ScriptParser
     {
 
         readonly ScriptLexer lexer;

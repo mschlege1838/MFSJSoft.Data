@@ -21,7 +21,7 @@ namespace MFSJSoft.Data.Scripting
     ///
     /// 
     /// <remarks>
-    /// <para>The <c>ScriptExecutor</c> class provides a convenient integration between application code
+    /// <para>The <see cref="ScriptExecutor"/> class provides a convenient integration between application code
     /// and SQL scripts. The processing model uses directives declared within SQL comments to control
     /// how scripts are executed.</para>
     /// 
@@ -50,19 +50,28 @@ namespace MFSJSoft.Data.Scripting
     /// string value, use triple quotes to open and close the string (I.e. <c>"""</c> or <c>'''</c>). The same escape 
     /// rules above apply to triple-quoted string values.</para>
     /// 
-    /// <para>Scripts are initialized as they are passed to the 
-    /// <see cref="ScriptExecutor.ExecuteScript(string, IScriptProcessor, string)">ExecuteScript</see>
-    /// method. After a script is initialized, its state is saved for subsequent execution; application restart is
-    /// required to observe changes in the underlying script source code.</para>
+    /// <para>Scripts are initialized as they are passed to the <see cref="ExecuteScript" /> method. After a script is
+    /// initialized, its state is saved for subsequent execution; application restart is required to observe changes in
+    /// the underlying script source code.</para>
     /// 
-    /// <para>The default statement terminator is the semicolon (<c>;</c>), but can be
-    /// any character sequence, so long as it does not contain characters used by <c>ScriptExecutor</c> to
-    /// process directives. Statement terminators can be specified on a per-script basis to 
-    /// <see cref="ScriptExecutor.ExecuteScript(string, IScriptProcessor, string)">ExecuteScript</see>, but are only
-    /// used to compile the script the first time it is initalized.</para>
+    /// <para>Initialized state is stored on a per script and <see cref="IScriptProcessor"/> basis. By default,
+    /// <see cref="IScriptProcessor">Processors</see> are identified by their type, unless they implement
+    /// <see cref="IIdentifiable"/>, in which case, they are identified by their <see cref="IIdentifiable.Id">Id</see></para>
     /// 
-    /// <para>Generally application code will use the <see cref="CompositeProcessor" /> for script execution, and pass 
-    /// in relevant predefined <see cref="IDirectiveProcessor">IDirectiveProcessors</see> depending on directives used 
+    /// <para>The default statement terminator is the semicolon (<c>;</c>), but can be any character sequence, so long
+    /// as it does not contain characters used by <c>ScriptExecutor</c> to process directives. Statement terminators
+    /// can be specified on a per-script basis using a custom <see cref="IScriptResolver"/>, and setting the
+    /// <see cref="ScriptSource.StatementTerminator">StatementTerminator</see> property on <see cref="ScriptSource"/>
+    /// instances it returns. Note, if the <see cref="IScriptProcessor"/> passed to <see cref="ExecuteScript" /> also implements
+    /// <see cref="IScriptResolver"/>, it will be used in preference to the <see cref="IScriptResolver"/> passed to
+    /// the constructor (if any).</para>
+    /// 
+    /// <para>If no <see cref="IScriptResolver"/> is passed to the constructor, and a given <see cref="IScriptResolver"/>
+    /// does not implement <see cref="IScriptResolver"/> in <see cref="ExecuteScript"/>, the given script name will
+    /// be resolved directly against the local file system.</para>
+    /// 
+    /// <para>Generally application code will use the <see cref="CompositeProcessor" /> for script execution, and pass
+    /// in relevant predefined <see cref="IDirectiveProcessor">IDirectiveProcessors</see> depending on directives used
     /// within the script to be executed.</para>
     /// 
     /// <para>The predefined directives are summarized below:</para>
@@ -70,7 +79,7 @@ namespace MFSJSoft.Data.Scripting
     /// <item>
     ///     <term><c>#Callback: statementName?</c></term>
     ///     <description>
-    ///     Passes the statement text with the given <c>statementName</c> back to application code through an 
+    ///     Passes the statement text with the given <c>statementName</c> back to application code through an
     ///     <see cref="CallbackProcessor.ExecuteStatement">ExecuteStatement</see> delegate registered with a
     ///     <see cref="CallbackProcessor" />. It is up to application code to create and execute an appropriate
     ///     <see cref="IDbCommand"/>.
@@ -87,13 +96,13 @@ namespace MFSJSoft.Data.Scripting
     ///     </description>
     /// </item>
     /// <item>
-    ///     <term><c>#If[Not]: propertyName, propertyValue?, ifTrueValue?, ifFalseValue?</c></term>
+    ///     <term><c>#If[Not]: propertyName, propertyValue?, ifTrueValue, ifFalseValue?</c></term>
     ///     <description>
-    ///     Conditionally inserts the given <c>ifTrueValue</c> in place of this directive in the statement text. With 
-    ///     two arguments, the <c>ifTrueValue</c> will be inserted if the value of the given <c>propertyName</c> is defined 
+    ///     Conditionally inserts the given <c>ifTrueValue</c> in place of this directive in the statement text. With
+    ///     two arguments, the <c>ifTrueValue</c> will be inserted if the value of the given <c>propertyName</c> is defined
     ///     and not equal to (ignoring case) <c>false</c>. With three arguments, the <c>ifTrueValue</c> will be inserted
-    ///     if the property is equal to <c>propertyValue</c>. With four arguments, the given <c>ifFalseValue</c> will be 
-    ///     inserted the property is not equal to <c>propertyValue</c>. If the asterick (<c>*</c>) is given as 
+    ///     if the property is equal to <c>propertyValue</c>. With four arguments, the given <c>ifFalseValue</c> will be
+    ///     inserted the property is not equal to <c>propertyValue</c>. If the asterick (<c>*</c>) is given as
     ///     <c>propertyValue</c>, the "if defined, not <c>false</c>" evaluation performed with the two-argment form is
     ///     executed instead of a string-literal comparison. Properties are supplied in <see cref="IProperties"/> passed
     ///     to the <see cref="IfProcessor"/>.
@@ -104,7 +113,7 @@ namespace MFSJSoft.Data.Scripting
     ///     <description>
     ///     Identical to the <c>If[Not]</c> directive above, except only executed once, when the script is first compiled.
     ///     Use this form for static properties that won't change over the lifetime of the application. Use the previous
-    ///     form if evaluation is to be done based upon properties to be supplied at runtime.  Properties are supplied in 
+    ///     form if evaluation is to be done based upon properties to be supplied at runtime.  Properties are supplied in
     ///     <see cref="IProperties"/> passed to the <see cref="IfDefProcessor"/>
     ///     </description>
     /// </item>
@@ -112,19 +121,19 @@ namespace MFSJSoft.Data.Scripting
     ///     <term><c>#LoadTable: tableName, createTemporary, columnDefs...</c></term>
     ///     <description>
     ///     
-    ///     <para>Initializes a <see cref="DbBatchLoader"/>, based on the given <c>tableName</c> and <c>columnDefs</c> 
-    ///     and passes back to a <see cref="LoadTableProcessor.WithLoader">WithLoader</see> callback with the given 
-    ///     <c>tableName</c>. The <c>createTemporary</c> argument must be <c>true</c> or <c>false</c>. If <c>true</c>, 
-    ///     a temporary table of the given <c>tableName</c> will be implicitly created. If <c>false</c>, the given 
+    ///     <para>Initializes a <see cref="DbBatchLoader"/>, based on the given <c>tableName</c> and <c>columnDefs</c>
+    ///     and passes back to a <see cref="LoadTableProcessor.WithLoader">WithLoader</see> callback with the given
+    ///     <c>tableName</c>. The <c>createTemporary</c> argument must be <c>true</c> or <c>false</c>. If <c>true</c>,
+    ///     a temporary table of the given <c>tableName</c> will be implicitly created. If <c>false</c>, the given
     ///     <c>tableName</c> must exist within scope of the current database session.</para>
     ///     
-    ///     <para>The <c>columnDefs</c> portion of this directive's argument list is variadic, and each value must be 
+    ///     <para>The <c>columnDefs</c> portion of this directive's argument list is variadic, and each value must be
     ///     specified as a quoted string. Values are a comma-separated list of two, three, or four values:</para>
     ///     <list type="number">
     ///     <item>
     ///         <term><c>name</c> (Required)</term>
     ///         <description>
-    ///         The target table column name. When translated to a parameter, the parameter name will be this with an at 
+    ///         The target table column name. When translated to a parameter, the parameter name will be this with an at
     ///         (<c>@</c>) character prepended.
     ///         </description>
     ///     </item>
@@ -147,7 +156,7 @@ namespace MFSJSoft.Data.Scripting
     ///         <description>The scale for a numeric data type.</description>
     ///     </item>
     ///     </list>
-    ///     
+    ///
     ///     <para>Client code is responsible for assigning <see cref="DbBatchLoader.InputData">InputData</see> to the
     ///     <see cref="DbBatchLoader" /> and defining the <see cref="DbBatchLoader.RowDelegate" /> callback to update
     ///     <see cref="DataRow" /> instances with application data.</para>
@@ -160,7 +169,7 @@ namespace MFSJSoft.Data.Scripting
     ///     <para>The default mapping between <see cref="DbType"/> constants and SQL data types used for implicit
     ///     temporary table creation follows semantics that are compatible with SQL Server, but strives to be as
     ///     ANSI-friendly as possible. Both these and the prefix used for creating temporary tables (which follows
-    ///     SQL Server semantics only) can be overriden in global properties, and as optional arguments to the 
+    ///     SQL Server semantics only) can be overriden in global properties, and as optional arguments to the
     ///     constructor of <see cref="LoadTableProcessor" /></para>
     ///     </description>
     /// </item>
@@ -172,23 +181,47 @@ namespace MFSJSoft.Data.Scripting
         internal static readonly RegexReplacer DirectivePlaceholderReplacer = new(new Regex(@"\{([0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})\}"));
 
         readonly IScriptResolver resolver;
-        readonly IDictionary<Type, object> processorConfig;
+        readonly IDictionary<object, object> processorConfig;
         readonly IDictionary<(string, object), IList<InitializedStatement>> compiledScripts = new Dictionary<(string, object), IList<InitializedStatement>>();
 
-
-        public ScriptExecutor(IScriptResolver resolver = null, IDictionary<Type, object> processorConfig = null)
+        /// <summary>
+        /// Construct a new <see cref="ScriptExecutor"/> with (optionally) the given <see cref="IScriptResolver"/> and
+        /// global <c>processorConfig</c>, keyed by processor <see cref="Type"/> or <see cref="IIdentifiable.Id"/>.
+        /// </summary>
+        /// <param name="resolver">(Optional) <see cref="IScriptResolver"/> to resolve script source code as they are first
+        /// <see cref="ExecuteScript">executed</see>. Note, if the <see cref="IScriptProcessor"/> passed to <see cref="ExecuteScript"/>
+        /// also implements <see cref="IScriptResolver"/>, this will be ignored.</param>
+        /// <param name="processorConfig">
+        /// Global processor configuration, keyed by processor <see cref="Type"/> <see cref="IIdentifiable.Id"/>
+        /// </param>
+        public ScriptExecutor(IScriptResolver resolver = null, IDictionary<object, object> processorConfig = null)
         {
             this.resolver = resolver;
             this.processorConfig = processorConfig;
         }
 
-        public void ExecuteScript(string name, IScriptProcessor processor, string statementTerminator = null)
+        /// <summary>
+        /// Execute the script of the given name.
+        /// </summary>
+        /// <remarks>
+        /// If the given <c>processor</c> also implements <see cref="IScriptResolver"/>, <c>name</c> will be passed to it for resoultion.
+        /// If <c>processor</c> does not implement <see cref="IScriptResolver"/>, but an <see cref="IScriptResolver"/> was given in the
+        /// constructor, <c>name</c> will be passed to it for resolution. Failing those, an attempt will be made to resolve <c>name</c>
+        /// directly against the <see cref="File.ReadAllText(string)">file syste</see>.
+        /// </remarks>
+        /// <param name="name"></param>
+        /// <param name="processor"></param>
+        public void ExecuteScript(string name, IScriptProcessor processor)
         {
-            var processorType = processor.GetType();
-            var scriptKey = (name, processor is IIdentifiable identifiable ? identifiable.Id : processorType);
-            if (processorConfig is not null && processorConfig.ContainsKey(processorType))
+            var processorKey = processor is IIdentifiable identifiable ? identifiable.Id : processor.GetType();
+            if (processorKey is null)
             {
-                processor.InitProcessor(processorConfig[processorType]);
+                processorKey = processor.GetType();
+            }
+            var scriptKey = (name, processorKey);
+            if (processorConfig is not null && processorConfig.ContainsKey(processorKey))
+            {
+                processor.InitProcessor(processorConfig[processorKey]);
             }
             else
             {
@@ -219,7 +252,7 @@ namespace MFSJSoft.Data.Scripting
                 }
                 else
                 {
-                    source = new ScriptSource(File.ReadAllText(name), name, statementTerminator);
+                    source = new ScriptSource(File.ReadAllText(name), name);
                 }
 
                 // Process Statements.
@@ -292,6 +325,7 @@ namespace MFSJSoft.Data.Scripting
         }
       
     }
+
 
     public class StatementExecutionException : Exception
     {
