@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.Data.Common;
 
+using Microsoft.Extensions.Logging;
 
 namespace MFSJSoft.Data.Scripting.Processor
 {
@@ -20,6 +21,7 @@ namespace MFSJSoft.Data.Scripting.Processor
         public DbConnection Connection { get; }
         public DbTransaction Transaction { get; }
         public bool NoTimeout { get; }
+        public ILogger Logger { get; internal set; }
 
         public DbCommand NewCommand()
         {
@@ -82,7 +84,7 @@ namespace MFSJSoft.Data.Scripting.Processor
 
         }
 
-        public void InitProcessor(object configuration)
+        public void InitProcessor(object configuration, ILogger logger)
         {
             if (configuration is not null && configuration is CompositeProcessorConfiguration lcfg)
             {
@@ -104,6 +106,8 @@ namespace MFSJSoft.Data.Scripting.Processor
                     }
                 }
             }
+
+            context.Logger = logger;
             
             if (context.ProviderFactory is null)
             {

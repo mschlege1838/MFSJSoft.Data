@@ -4,6 +4,8 @@ using System.Data;
 using System.Data.Common;
 using System.Xml;
 
+using Microsoft.Extensions.Logging;
+
 namespace MFSJSoft.Data.Util
 {
     public class DbBatchLoader
@@ -13,15 +15,17 @@ namespace MFSJSoft.Data.Util
 
         readonly DbProviderFactory providerFactory;
 
-        public DbBatchLoader(DbProviderFactory providerFactory, DbConnection connection = null, DbTransaction transaction = null)
+        public DbBatchLoader(DbProviderFactory providerFactory, DbConnection connection = null, DbTransaction transaction = null, ILogger logger = null)
         {
             this.providerFactory = providerFactory ?? throw new ArgumentNullException(nameof(providerFactory));
             Connection = connection;
             Transaction = transaction;
+            Logger = logger;
         }
 
         public DbConnection Connection { get; set; }
         public DbTransaction Transaction { get; set; }
+        public ILogger Logger { get; set; }
 
         public bool NoTimeout { get; set; } = false;
         public int UpdateBatchSize { get; set; } = 0;
@@ -94,7 +98,16 @@ namespace MFSJSoft.Data.Util
             }
             else
             {
-                // TODO Warn provider cannot create data adapter; fall back to sequential inserts.
+                if (Logger is not null)
+                {
+                    Logger.LogWarning("Attempting to batch load data, however registered provider indicates " +
+                                "it cannot create DataAdapter instances: {0}", providerFactory);
+                }
+                else
+                {
+                    Console.Error.WriteLine("WARNING: Attempting to batch load data, however registered provider indicates " +
+                                "it cannot create DataAdapter instances: {0}", providerFactory);
+                }
 
                 var table = new DataTable();
                 foreach (var parameter in Parameters)

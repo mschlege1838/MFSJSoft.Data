@@ -6,6 +6,8 @@ using System.IO;
 using System.Text;
 using System.Text.RegularExpressions;
 
+using Microsoft.Extensions.Logging;
+
 using MFSJSoft.Data.Scripting.Model;
 using MFSJSoft.Data.Scripting.Processor;
 using MFSJSoft.Data.Util;
@@ -182,6 +184,7 @@ namespace MFSJSoft.Data.Scripting
 
         readonly IScriptResolver resolver;
         readonly IDictionary<object, object> processorConfig;
+        readonly ILogger logger;
         readonly IDictionary<(string, object), IList<InitializedStatement>> compiledScripts = new Dictionary<(string, object), IList<InitializedStatement>>();
 
         /// <summary>
@@ -194,10 +197,12 @@ namespace MFSJSoft.Data.Scripting
         /// <param name="processorConfig">
         /// Global processor configuration, keyed by processor <see cref="Type"/> <see cref="IIdentifiable.Id"/>
         /// </param>
-        public ScriptExecutor(IScriptResolver resolver = null, IDictionary<object, object> processorConfig = null)
+        /// <param name="logger">Optional ILogger for <see cref="ScriptExecutor"/>-related logging.</param>
+        public ScriptExecutor(IScriptResolver resolver = null, IDictionary<object, object> processorConfig = null, ILogger logger = null)
         {
             this.resolver = resolver;
             this.processorConfig = processorConfig;
+            this.logger = logger;
         }
 
         /// <summary>
@@ -223,11 +228,11 @@ namespace MFSJSoft.Data.Scripting
             var scriptKey = (name, processorKey);
             if (processorConfig is not null && processorConfig.ContainsKey(processorKey))
             {
-                processor.InitProcessor(processorConfig[processorKey]);
+                processor.InitProcessor(processorConfig[processorKey], logger);
             }
             else
             {
-                processor.InitProcessor(null);
+                processor.InitProcessor(null, logger);
             }
 
             // Retrieve script.
