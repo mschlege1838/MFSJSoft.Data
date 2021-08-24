@@ -191,12 +191,11 @@ namespace MFSJSoft.Data.Scripting
         /// Construct a new <see cref="ScriptExecutor"/> with (optionally) the given <see cref="IScriptResolver"/> and
         /// global <c>processorConfig</c>, keyed by processor <see cref="Type"/> or <see cref="IIdentifiable.Id"/>.
         /// </summary>
-        /// <param name="resolver">(Optional) <see cref="IScriptResolver"/> to resolve script source code as they are first
+        /// <param name="resolver">Optional <see cref="IScriptResolver"/> to resolve script source code as they are first
         /// <see cref="ExecuteScript">executed</see>. Note, if the <see cref="IScriptProcessor"/> passed to <see cref="ExecuteScript"/>
         /// also implements <see cref="IScriptResolver"/>, this will be ignored.</param>
-        /// <param name="processorConfig">
-        /// Global processor configuration, keyed by processor <see cref="Type"/> <see cref="IIdentifiable.Id"/>
-        /// </param>
+        /// <param name="processorConfig">Optional global processor configuration, keyed by processor <see cref="Type"/> or
+        /// <see cref="IIdentifiable.Id"/></param>
         /// <param name="logger">Optional ILogger for <see cref="ScriptExecutor"/>-related logging.</param>
         public ScriptExecutor(IScriptResolver resolver = null, IDictionary<object, object> processorConfig = null, ILogger logger = null)
         {
