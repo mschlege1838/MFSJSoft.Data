@@ -8,6 +8,46 @@ using Microsoft.Extensions.Logging;
 
 namespace MFSJSoft.Data.Util
 {
+
+    /// <summary>
+    /// Generic database batch loader for relational, table-structured data. An ADO <see cref="DataAdapter"/> is
+    /// used to perform batch operations.
+    /// </summary>
+    /// <remarks>
+    /// <param>The <see cref="DbBatchLoader"/> uses the provided <see cref="Connection">Connection</see> and 
+    /// <see cref="Transaction">Transaction</see> (if any) to perform batch data loads in a generic, well-defined
+    /// manner.</param>
+    /// 
+    /// <para>Although all properties are readable and writable for convenience, the following are required at the time 
+    /// <see cref="Execute">Execute</see> is called:</para>
+    /// <list type="bullet">
+    ///     <item>
+    ///         <term><see cref="Connection">Connection</see></term>
+    ///         <description>Database connection, as would be assigned to <see cref="DbCommand"/> instances.</description>    
+    ///     </item>
+    ///     <item>
+    ///         <term><see cref="SelectStatement">SelectStatement</see></term>
+    ///         <description>A select statement used to define table metadata.</description>
+    ///     </item>
+    ///     <item>
+    ///         <term><see cref="InsertStatement">InsertStatement</see></term>
+    ///         <description>Parameterized, single-row insert statement with parameters matching the names of those in the
+    ///         <see cref="Parameters">Parameters</see> property.</description>
+    ///     </item>
+    ///     <item>
+    ///         <term><see cref="InputData">InputData</see></term>
+    ///         <description>Raw <see cref="System.Collections.IEnumerable">enumeration</see> of data to be loaded. Due to
+    ///         constraints that would otherwise be required for generic typing, it is more convenient to make the appropriate 
+    ///         casts from <see cref="object"/> in <see cref="RowDelegate">RowDelegate</see>.</description>
+    ///     </item>
+    ///     <item>
+    ///         <term><see cref="RowDelegate">RowDelegate</see></term>
+    ///         <description>Callback function to perform row-by-row assignment from the raw <see cref="InputData">InputData</see>
+    ///         to <see cref="DataRow"/> instances used in the batch.</description>
+    ///     </item>
+    /// </list>
+    /// 
+    /// </remarks>
     public class DbBatchLoader
     {
 
