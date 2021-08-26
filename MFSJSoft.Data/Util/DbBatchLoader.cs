@@ -35,6 +35,14 @@ namespace MFSJSoft.Data.Util
     ///         <see cref="Parameters">Parameters</see> property.</description>
     ///     </item>
     ///     <item>
+    ///         <term><see cref="Parameters">Parameters</see></term>
+    ///         <description>Repeatable <see cref="IEnumerable{T}"/> of <see cref="DbParameter"/> instances configured for batch
+    ///         inserts. I.e. the <see cref="DbParameter.ParameterName">ParameterName</see>, <see cref="DbParameter.DbType">DbType</see>,
+    ///         <see cref="DbParameter.SourceColumn">SourceColumn</see>, and optionally the <see cref="DbParameter.Size">Size</see>,
+    ///         <see cref="DbParameter.Precision">Precision</see>, and/or <see cref="DbParameter.Scale">Scale</see> properties
+    ///         defined, and all others left <c>default</c>.</description>
+    ///     </item>
+    ///     <item>
     ///         <term><see cref="InputData">InputData</see></term>
     ///         <description>Raw <see cref="System.Collections.IEnumerable">enumeration</see> of data to be loaded. Due to
     ///         constraints that would otherwise be required for generic typing, it is more convenient to make the appropriate 
@@ -92,6 +100,10 @@ namespace MFSJSoft.Data.Util
             {
                 throw new ArgumentNullException(nameof(InsertStatement));
             }
+            if (Parameters is null)
+            {
+                throw new ArgumentNullException(nameof(Parameters));
+            }
 
 
 
@@ -121,12 +133,9 @@ namespace MFSJSoft.Data.Util
                 adapter.SelectCommand = selectCommand;
                 adapter.InsertCommand = insertCommand;
                 adapter.UpdateBatchSize = UpdateBatchSize;
-                if (Parameters is not null)
+                foreach (var parameter in Parameters)
                 {
-                    foreach (var parameter in Parameters)
-                    {
-                        adapter.InsertCommand.Parameters.Add(parameter);
-                    }
+                    adapter.InsertCommand.Parameters.Add(parameter);
                 }
 
                 var table = new DataTable();
