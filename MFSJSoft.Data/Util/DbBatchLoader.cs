@@ -67,7 +67,7 @@ namespace MFSJSoft.Data.Util
         public DbTransaction Transaction { get; set; }
         public ILogger Logger { get; set; }
 
-        public bool NoTimeout { get; set; } = false;
+        public int CommandTimeout { get; set; } = 30;
         public int UpdateBatchSize { get; set; } = 0;
 
         public string CreateStatement { get; set; }
@@ -190,10 +190,7 @@ namespace MFSJSoft.Data.Util
             command.Connection = Connection;
             command.Transaction = Transaction;
             command.UpdatedRowSource = UpdateRowSource.None;
-            if (NoTimeout)
-            {
-                command.CommandTimeout = 0;
-            }
+            command.CommandTimeout = CommandTimeout;
             return command;
         }
 

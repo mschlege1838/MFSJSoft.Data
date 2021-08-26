@@ -108,7 +108,7 @@ namespace MFSJSoft.Data.Scripting.Processor
                 SelectStatement = loaderData.SelectStatement,
                 InsertStatement = loaderData.InsertStatement,
                 Parameters = loaderData.Parameters,
-                NoTimeout = context.NoTimeout
+                CommandTimeout = context.CommandTimeout
             });
 
             if (!handled)

@@ -10,17 +10,16 @@ namespace MFSJSoft.Data.Scripting.Processor
 
     public class CompositeProcessorContext
     {
-        internal CompositeProcessorContext(DbConnection connection, DbTransaction transaction, bool noTimeout)
+        internal CompositeProcessorContext(DbConnection connection, DbTransaction transaction)
         {
             Connection = connection;
             Transaction = transaction;
-            NoTimeout = noTimeout;
         }
 
         public DbProviderFactory ProviderFactory { get; internal set; }
         public DbConnection Connection { get; }
         public DbTransaction Transaction { get; }
-        public bool NoTimeout { get; }
+        public int CommandTimeout { get; internal set; }
         public ILogger Logger { get; internal set; }
 
         public DbCommand NewCommand()
@@ -28,10 +27,7 @@ namespace MFSJSoft.Data.Scripting.Processor
             var result = ProviderFactory.CreateCommand();
             result.Connection = Connection;
             result.Transaction = Transaction;
-            if (NoTimeout)
-            {
-                result.CommandTimeout = 0;
-            }
+            result.CommandTimeout = CommandTimeout;
             return result;
         }
     }
@@ -39,6 +35,7 @@ namespace MFSJSoft.Data.Scripting.Processor
     public class CompositeProcessorConfiguration
     {
         public DbProviderFactory ProviderFactory { get; set; }
+        public int CommandTimeout { get; set; } = 30;
         public IDictionary<Type, object> DirectiveConfiguration { get; set; }
     }
 
@@ -48,38 +45,23 @@ namespace MFSJSoft.Data.Scripting.Processor
         readonly CompositeProcessorContext context;
         readonly ICollection<IDirectiveProcessor> processors;
 
-        public CompositeProcessor(DbProviderFactory providerFactory, DbConnection connection, DbTransaction transaction, bool noTimeout, params IDirectiveProcessor[] processors)
+        public CompositeProcessor(DbProviderFactory providerFactory, DbConnection connection, DbTransaction transaction, params IDirectiveProcessor[] processors)
         {
-            context = new CompositeProcessorContext(connection ?? throw new ArgumentNullException(nameof(connection)), transaction, noTimeout) { ProviderFactory = providerFactory };
+            context = new CompositeProcessorContext(connection ?? throw new ArgumentNullException(nameof(connection)), transaction) { ProviderFactory = providerFactory };
             this.processors = processors;
         }
 
-        public CompositeProcessor(DbProviderFactory providerFactory, DbConnection connection, bool noTimeout, params IDirectiveProcessor[] processors) : this(providerFactory, connection, null, noTimeout, processors)
+        public CompositeProcessor(DbProviderFactory providerFactory, DbConnection connection, params IDirectiveProcessor[] processors) : this(providerFactory, connection, null, processors)
         {
             
         }
 
-        public CompositeProcessor(DbProviderFactory providerFactory, DbConnection connection, DbTransaction transaction, params IDirectiveProcessor[] processors) : this(providerFactory, connection, transaction, false, processors)
-        {
-            
-        }
-
-        public CompositeProcessor(DbProviderFactory providerFactory, DbConnection connection, params IDirectiveProcessor[] processors) : this(providerFactory, connection, null, false, processors)
-        {
-            
-        }
-
-        public CompositeProcessor(DbConnection connection, bool noTimeout, params IDirectiveProcessor[] processors) : this(null, connection, null, noTimeout, processors)
+        public CompositeProcessor(DbConnection connection, DbTransaction transaction, params IDirectiveProcessor[] processors) : this(null, connection, transaction, processors)
         {
 
         }
 
-        public CompositeProcessor(DbConnection connection, DbTransaction transaction, params IDirectiveProcessor[] processors) : this(null, connection, transaction, false, processors)
-        {
-
-        }
-
-        public CompositeProcessor(DbConnection connection, params IDirectiveProcessor[] processors) : this(null, connection, null, false, processors)
+        public CompositeProcessor(DbConnection connection, params IDirectiveProcessor[] processors) : this(null, connection, null, processors)
         {
 
         }
@@ -93,6 +75,8 @@ namespace MFSJSoft.Data.Scripting.Processor
                     context.ProviderFactory = lcfg.ProviderFactory;
                 }
 
+                context.CommandTimeout = lcfg.CommandTimeout;
+
                 foreach (var processor in processors)
                 {
                     var processorType = processor.GetType();
@@ -105,6 +89,7 @@ namespace MFSJSoft.Data.Scripting.Processor
                         processor.InitProcessor(null);
                     }
                 }
+
             }
 
             context.Logger = logger;
