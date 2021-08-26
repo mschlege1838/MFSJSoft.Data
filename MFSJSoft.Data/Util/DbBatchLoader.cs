@@ -27,7 +27,9 @@ namespace MFSJSoft.Data.Util
     ///     </item>
     ///     <item>
     ///         <term><see cref="SelectStatement">SelectStatement</see></term>
-    ///         <description>A select statement used to define table metadata.</description>
+    ///         <description>A select statement used to define table metadata. The <see cref="DbDataAdapter.FillSchema(DataTable, SchemaType)"/>
+    ///         method is used to define the <see cref="DataTable"/> schema (with <see cref="SchemaType.Source"/>); if the select
+    ///         statement would otherwise return rows, they are ignored.</description>
     ///     </item>
     ///     <item>
     ///         <term><see cref="InsertStatement">InsertStatement</see></term>
@@ -139,7 +141,7 @@ namespace MFSJSoft.Data.Util
                 }
 
                 var table = new DataTable();
-                adapter.Fill(table);
+                adapter.FillSchema(table, SchemaType.Source);
 
                 ProcessRows(table);
 
