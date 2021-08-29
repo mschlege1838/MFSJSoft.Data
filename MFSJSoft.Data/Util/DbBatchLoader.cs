@@ -57,14 +57,72 @@ namespace MFSJSoft.Data.Util
     ///     </item>
     /// </list>
     /// 
+    /// <param>The remaining properties are optional:</param>
+    /// <list type="bullet">
+    ///     <item>
+    ///         <term><see cref="Transaction">Transaction</see></term>
+    ///         <description>Assigned to the <see cref="DbCommand.Transaction"/> property for all commands created and
+    ///         executed.</description>
+    ///     </item>
+    ///     <item>
+    ///         <term><see cref="Logger">Logger</see></term>
+    ///         <description>Defaults to <see cref="Console.Error"/>. Only warning information is logged; any error is thrown
+    ///         as an approperite <see cref="Exception"/>.</description>
+    ///     </item>
+    ///     <item>
+    ///         <term><see cref="CommandTimeout">CommandTimeout</see></term>
+    ///         <description>Assigned to the <see cref="DbCommand.CommandTimeout"/> property for all commands created
+    ///         and executed. Consistent with SQL Server, the default is <c>30</c>s.</description>
+    ///     </item>
+    ///     <item>
+    ///         <term><see cref="UpdateBatchSize">UpdateBatchSize</see></term>
+    ///         <description>Assigned to the <see cref="DbDataAdapter.UpdateBatchSize"/> property for batch execution.
+    ///         The default is <c>0</c> (i.e. no limit).</description>
+    ///     </item>
+    /// </list>
+    /// 
+    /// <para>The <see cref="Execute">Execute</see> method follows this sequence:</para>
+    /// <list type="number">
+    ///     <item>
+    ///         <description>If <see cref="CreateStatement">CreateStatement</see> is not <see langword="null"/>, it will
+    ///         be executed first. This is generally used to create a target temporary table for the load.</description>
+    ///     </item>
+    ///     <item>
+    ///         <description>The <see cref="RowDelegate">RowDelegate</see> is called for each item in 
+    ///         <see cref="InputData">InputData</see>.</description>
+    ///     </item>
+    ///     <item>
+    ///         <description>After <see cref="InputData">InputData</see> is fully iterated, rows will be inserted using 
+    ///         <see cref="InsertStatement">InsertStatement</see> parameterized with
+    ///         <see cref="Parameters">Parameters</see>. If the <see cref="DbProviderFactory"/> supports the
+    ///         <see cref="DbProviderFactory.CanCreateDataAdapter">creation</see> of <see cref="DbDataAdapter"/>
+    ///         instances, the update is performed using <see cref="DbDataAdapter.Update(DataTable)"/>, otherwise a
+    ///         warning is logged, and the update is performed sequentially with individual
+    ///         <see cref="DbCommand">DbCommands</see>.</description>
+    ///     </item>
+    /// </list>
     /// </remarks>
     public class DbBatchLoader
     {
 
+        /// <summary>
+        /// A <c>delegate</c> called in <see cref="Execute">Execute</see> to update a <see cref="DataRow"/> for each item 
+        /// in <see cref="InputData">InputData</see>.
+        /// </summary>
+        /// <param name="row"><see cref="DataRow"/> to update.</param>
+        /// <param name="item">Item from <see cref="InputData">InputData</see> with which <c>row</c> is to be updated.</param>
         public delegate void UpdateRow(DataRow row, object item);
 
         readonly DbProviderFactory providerFactory;
 
+        /// <summary>
+        /// Construct a new instance of <see cref="DbBatchLoader"/>.
+        /// </summary>
+        /// <param name="providerFactory"><see cref="DbProviderFactory"/> used for creating <see cref="DbCommand"/>,
+        /// <see cref="DbDataAdapter"/>, <see cref="DbParameter"/>, etc. instances.</param>
+        /// <param name="connection"><see cref="DbConnection"/> on which to execute the batch.</param>
+        /// <param name="transaction">Current <see cref="DbTransaction"/>, if any.</param>
+        /// <param name="logger">Optional <see cref="ILogger"/> used to log warning information.</param>
         public DbBatchLoader(DbProviderFactory providerFactory, DbConnection connection = null, DbTransaction transaction = null, ILogger logger = null)
         {
             this.providerFactory = providerFactory ?? throw new ArgumentNullException(nameof(providerFactory));
@@ -73,21 +131,79 @@ namespace MFSJSoft.Data.Util
             Logger = logger;
         }
 
+        /// <summary>
+        /// <see cref="DbConnection"/> on which to execute the batch.
+        /// </summary>
         public DbConnection Connection { get; set; }
+        
+        /// <summary>
+        /// Current <see cref="DbTransaction"/>, if any.
+        /// </summary>
         public DbTransaction Transaction { get; set; }
+        
+        /// <summary>
+        /// <see cref="ILogger"/> used to log warning information. If <see langword="null"/>, warnings will be
+        /// logged to <see cref="Console.Error"/>.
+        /// </summary>
         public ILogger Logger { get; set; }
 
+
+        /// <summary>
+        /// Copied to the <see cref="DbCommand.CommandTimeout"/> property for all <see cref="DbCommand"/> instances
+        /// created by this <see cref="DbDataAdapter"/>. Default is 30s.
+        /// </summary>
         public int CommandTimeout { get; set; } = 30;
+        /// <summary>
+        /// Copied to the <see cref="DbDataAdapter.UpdateBatchSize"/> property on the <see cref="DbDataAdapter"/>
+        /// used to execute the batch. Default is 0 (no limit).
+        /// </summary>
         public int UpdateBatchSize { get; set; } = 0;
 
+
+        /// <summary>
+        /// Optional statement to create the target table. The target table is typically temporary. If
+        /// <see langword="null"/>, this property will be ignored.
+        /// </summary>
         public string CreateStatement { get; set; }
+        
+        /// <summary>
+        /// Select statement used to <see cref="DbDataAdapter.FillSchema(DataTable, SchemaType)">Fill</see> the
+        /// schema of the <see cref="DataTable"/> used to perform the update.
+        /// </summary>
+        /// <remarks>
+        /// Only strictly required if the <see cref="DbProviderFactory"/>
+        /// <see cref="DbProviderFactory.CanCreateDataAdapter">supports</see> <see cref="DbDataAdapter">DbDataAdapters</see>, 
+        /// but should generally always be provided for portability.
+        /// </remarks>
         public string SelectStatement { get; set; }
+        /// <summary>
+        /// Insert statement with parameters matching <see cref="Parameters">Parameters</see> used to execute the
+        /// batch.
+        /// </summary>
         public string InsertStatement { get; set; }
+
+        /// <summary>
+        /// Repeatable <see cref="IEnumerable{T}">enumeration</see> of <see cref="DbParameter"/> instances matching
+        /// those defined in <see cref="InsertStatement">InsertStatement</see>
+        /// </summary>
         public IEnumerable<DbParameter> Parameters { get; set; }
+        
+        /// <summary>
+        /// Raw <see cref="System.Collections.IEnumerable">enumeration</see> of the desired input data.
+        /// </summary>
         public System.Collections.IEnumerable InputData { get; set; }
+        
+        /// <summary>
+        /// Delegate implementation <see cref="UpdateRow"/> used to update <see cref="DataRow"/> instances for each
+        /// item in <see cref="Parameters">Parameters</see>.
+        /// </summary>
         public UpdateRow RowDelegate { get; set; }
         
 
+        /// <summary>
+        /// Executes this batch update in the sequence described in this <see cref="DbBatchLoader">class-level</see>
+        /// documentation.
+        /// </summary>
         public void Execute()
         {
             if (RowDelegate is null)
