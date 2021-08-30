@@ -225,14 +225,7 @@ namespace MFSJSoft.Data.Scripting
                 processorKey = processor.GetType();
             }
             var scriptKey = (name, processorKey);
-            if (processorConfig is not null && processorConfig.ContainsKey(processorKey))
-            {
-                processor.InitProcessor(processorConfig[processorKey], logger);
-            }
-            else
-            {
-                processor.InitProcessor(null, logger);
-            }
+            
 
             // Retrieve script.
             IList<InitializedStatement> script;
@@ -243,6 +236,16 @@ namespace MFSJSoft.Data.Scripting
             }
             else
             {
+                // Initialize script.
+                if (processorConfig is not null && processorConfig.ContainsKey(processorKey))
+                {
+                    processor.InitProcessor(processorConfig[processorKey], logger);
+                }
+                else
+                {
+                    processor.InitProcessor(null, logger);
+                }
+
                 // Compile script.
                 script = compiledScripts[scriptKey] = new List<InitializedStatement>();
 
