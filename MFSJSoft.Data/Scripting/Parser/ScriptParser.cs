@@ -9,19 +9,19 @@ namespace MFSJSoft.Data.Scripting.Parser
 {
     enum TokenType
     {
-        LINE_COMMENT_TOK,
-        BLOCK_START,
-        BLOCK_STOP,
-        REG_TOK,
-        COMMA,
-        COLON,
-        HASH_TAG,
-        DOUBLE_STAR,
-        SINGLE_QUOTED_STRING,
-        DOUBLE_QUOTED_STRING,
-        MULTILINE_STRING,
+        LineComment,
+        BlockStart,
+        BlockStop,
+        Regular,
+        Comma,
+        Colon,
+        HashTag,
+        DoubleStar,
+        SingleQuotedString,
+        DoubleQuotedString,
+        MultilineString,
         WS,
-        STATEMENT_TERMINATOR,
+        StatementTerminator,
         EOL,
         EOF
     }
@@ -84,7 +84,7 @@ namespace MFSJSoft.Data.Scripting.Parser
                 var la = La(1);
                 switch (la.Type)
                 {
-                    case TokenType.LINE_COMMENT_TOK:
+                    case TokenType.LineComment:
                         var lineDirective = TryLineDirective();
                         if (lineDirective is not null)
                         {
@@ -96,7 +96,7 @@ namespace MFSJSoft.Data.Scripting.Parser
                         else if (statementBegan)
                             text.Append(' ');
                         break;
-                    case TokenType.BLOCK_START:
+                    case TokenType.BlockStart:
                         var blockDirective = TryBlockDirective();
                         if (blockDirective is not null)
                         {
@@ -110,13 +110,13 @@ namespace MFSJSoft.Data.Scripting.Parser
                         break;
                     
                     case TokenType.EOL:
-                    case TokenType.REG_TOK:
-                    case TokenType.COMMA:
-                    case TokenType.COLON:
-                    case TokenType.HASH_TAG:
-                    case TokenType.DOUBLE_STAR:
-                    case TokenType.SINGLE_QUOTED_STRING:
-                    case TokenType.DOUBLE_QUOTED_STRING:
+                    case TokenType.Regular:
+                    case TokenType.Comma:
+                    case TokenType.Colon:
+                    case TokenType.HashTag:
+                    case TokenType.DoubleStar:
+                    case TokenType.SingleQuotedString:
+                    case TokenType.DoubleQuotedString:
                     case TokenType.WS:
                         DoStatementText(text, statementBegan, ref lineNumber);
                         if (text.Length > 0 && !statementBegan)
@@ -128,12 +128,12 @@ namespace MFSJSoft.Data.Scripting.Parser
                     case TokenType.EOF:
                         NextToken();
                         return text.Length == 0 ? null : new ScriptStatement(text.ToString(), lexer.FileName, lineNumber, directives);
-                    case TokenType.STATEMENT_TERMINATOR:
+                    case TokenType.StatementTerminator:
                         NextToken();
                         return new ScriptStatement(text.ToString(), lexer.FileName, lineNumber, directives);
                     default:
-                        throw UnexpectedToken(la, TokenType.LINE_COMMENT_TOK, TokenType.BLOCK_START, TokenType.EOL, TokenType.REG_TOK, TokenType.COMMA, TokenType.COLON,
-                            TokenType.HASH_TAG, TokenType.DOUBLE_STAR, TokenType.SINGLE_QUOTED_STRING, TokenType.DOUBLE_QUOTED_STRING, TokenType.EOL, TokenType.WS);
+                        throw UnexpectedToken(la, TokenType.LineComment, TokenType.BlockStart, TokenType.EOL, TokenType.Regular, TokenType.Comma, TokenType.Colon,
+                            TokenType.HashTag, TokenType.DoubleStar, TokenType.SingleQuotedString, TokenType.DoubleQuotedString, TokenType.EOL, TokenType.WS);
                 }
             }
         }
@@ -156,8 +156,8 @@ namespace MFSJSoft.Data.Scripting.Parser
                 if (!first && statementBegan)
                     text.Append(' ');
 
-                if (la.Type == TokenType.REG_TOK || la.Type == TokenType.COMMA || la.Type == TokenType.HASH_TAG || la.Type == TokenType.DOUBLE_STAR
-                    || la.Type == TokenType.SINGLE_QUOTED_STRING || la.Type == TokenType.DOUBLE_QUOTED_STRING)
+                if (la.Type == TokenType.Regular || la.Type == TokenType.Comma || la.Type == TokenType.HashTag || la.Type == TokenType.DoubleStar
+                    || la.Type == TokenType.SingleQuotedString || la.Type == TokenType.DoubleQuotedString)
                 {
                     var tok = NextToken();
                     text.Append(tok.RawValue);
@@ -168,8 +168,8 @@ namespace MFSJSoft.Data.Scripting.Parser
 
                     la = La(1);
                 }
-            } while (la.Type == TokenType.REG_TOK || la.Type == TokenType.COMMA || la.Type == TokenType.HASH_TAG || la.Type == TokenType.DOUBLE_STAR
-                    || la.Type == TokenType.SINGLE_QUOTED_STRING || la.Type == TokenType.DOUBLE_QUOTED_STRING);
+            } while (la.Type == TokenType.Regular || la.Type == TokenType.Comma || la.Type == TokenType.HashTag || la.Type == TokenType.DoubleStar
+                    || la.Type == TokenType.SingleQuotedString || la.Type == TokenType.DoubleQuotedString);
         }
 
         ScriptDirective TryBlockDirective()
@@ -177,25 +177,25 @@ namespace MFSJSoft.Data.Scripting.Parser
             filterWhitespace = true;
 
             var tok = NextToken();
-            if (tok.Type != TokenType.BLOCK_START)
-                throw UnexpectedToken(tok, TokenType.BLOCK_START);
+            if (tok.Type != TokenType.BlockStart)
+                throw UnexpectedToken(tok, TokenType.BlockStart);
 
             while ((tok = NextToken()).Type == TokenType.EOL);
-            if (tok.Type == TokenType.DOUBLE_STAR)
+            if (tok.Type == TokenType.DoubleStar)
             {
                 var lineNumber = tok.LineNubmer;
 
                 while ((tok = NextToken()).Type == TokenType.EOL) ;
-                if (tok.Type == TokenType.HASH_TAG)
+                if (tok.Type == TokenType.HashTag)
                 {
                     tok = NextToken();
-                    if (tok.Type == TokenType.REG_TOK)
+                    if (tok.Type == TokenType.Regular)
                     {
                         var directiveName = tok.Value;
                         var arguments = new List<string>();
 
                         tok = NextToken();
-                        if (tok.Type == TokenType.COLON)
+                        if (tok.Type == TokenType.Colon)
                         {
                             var state = 0;
                             var buf = new StringBuilder();
@@ -209,33 +209,33 @@ namespace MFSJSoft.Data.Scripting.Parser
                                 switch (state)
                                 {
                                     case 0:
-                                        if (tok.Type == TokenType.HASH_TAG)
+                                        if (tok.Type == TokenType.HashTag)
                                         {
                                             buf.Append('#');
                                         }
-                                        else if (tok.Type == TokenType.REG_TOK || tok.Type == TokenType.SINGLE_QUOTED_STRING || tok.Type == TokenType.DOUBLE_QUOTED_STRING || tok.Type == TokenType.MULTILINE_STRING)
+                                        else if (tok.Type == TokenType.Regular || tok.Type == TokenType.SingleQuotedString || tok.Type == TokenType.DoubleQuotedString || tok.Type == TokenType.MultilineString)
                                         {
                                             state = 1;
                                             arguments.Add(buf.Append(tok.Value).ToString());
                                             buf.Clear();
                                         }
                                         else
-                                            throw UnexpectedToken(tok, TokenType.REG_TOK, TokenType.SINGLE_QUOTED_STRING, TokenType.DOUBLE_QUOTED_STRING, TokenType.MULTILINE_STRING);
+                                            throw UnexpectedToken(tok, TokenType.Regular, TokenType.SingleQuotedString, TokenType.DoubleQuotedString, TokenType.MultilineString);
                                         break;
                                     case 1:
-                                        if (tok.Type == TokenType.BLOCK_STOP)
+                                        if (tok.Type == TokenType.BlockStop)
                                             state = 2;
-                                        else if (tok.Type == TokenType.COMMA)
+                                        else if (tok.Type == TokenType.Comma)
                                             state = 0;
                                         else
-                                            throw UnexpectedToken(tok, TokenType.COMMA);
+                                            throw UnexpectedToken(tok, TokenType.Comma);
                                         break;
                                 }
 
                             }
                         }
-                        else if (tok.Type != TokenType.BLOCK_STOP)
-                            throw UnexpectedToken(tok, TokenType.BLOCK_STOP);
+                        else if (tok.Type != TokenType.BlockStop)
+                            throw UnexpectedToken(tok, TokenType.BlockStop);
 
                         filterWhitespace = false;
                         return new ScriptDirective(directiveName, arguments, lexer.FileName, lineNumber);
@@ -248,10 +248,10 @@ namespace MFSJSoft.Data.Scripting.Parser
             do
             {
                 tok = NextToken();
-            } while (tok.Type != TokenType.BLOCK_STOP && tok.Type != TokenType.EOF);
+            } while (tok.Type != TokenType.BlockStop && tok.Type != TokenType.EOF);
 
             if (tok.Type == TokenType.EOF)
-                throw UnexpectedToken(tok, TokenType.BLOCK_STOP);
+                throw UnexpectedToken(tok, TokenType.BlockStop);
 
             filterWhitespace = false;
             return null;
@@ -262,24 +262,24 @@ namespace MFSJSoft.Data.Scripting.Parser
             filterWhitespace = true;
 
             var tok = NextToken();
-            if (tok.Type != TokenType.LINE_COMMENT_TOK)
-                throw UnexpectedToken(tok, TokenType.LINE_COMMENT_TOK);
+            if (tok.Type != TokenType.LineComment)
+                throw UnexpectedToken(tok, TokenType.LineComment);
 
             tok = NextToken();
-            if (tok.Type == TokenType.LINE_COMMENT_TOK)
+            if (tok.Type == TokenType.LineComment)
             {
                 var lineNumber = tok.LineNubmer;
                 tok = NextToken();
-                if (tok.Type == TokenType.HASH_TAG)
+                if (tok.Type == TokenType.HashTag)
                 {
                     tok = NextToken();
-                    if (tok.Type == TokenType.REG_TOK)
+                    if (tok.Type == TokenType.Regular)
                     {
                         var directiveName = tok.Value;
                         var arguments = new List<string>();
                         
                         tok = NextToken();
-                        if (tok.Type == TokenType.COLON)
+                        if (tok.Type == TokenType.Colon)
                         {
                             var state = 0;
                             while (state != 2)
@@ -288,21 +288,21 @@ namespace MFSJSoft.Data.Scripting.Parser
                                 switch (state)
                                 {
                                     case 0:
-                                        if (tok.Type == TokenType.REG_TOK || tok.Type == TokenType.SINGLE_QUOTED_STRING || tok.Type == TokenType.DOUBLE_QUOTED_STRING)
+                                        if (tok.Type == TokenType.Regular || tok.Type == TokenType.SingleQuotedString || tok.Type == TokenType.DoubleQuotedString)
                                         {
                                             state = 1;
                                             arguments.Add(tok.Value);
                                         }
                                         else
-                                            throw UnexpectedToken(tok, TokenType.REG_TOK, TokenType.SINGLE_QUOTED_STRING, TokenType.DOUBLE_QUOTED_STRING);
+                                            throw UnexpectedToken(tok, TokenType.Regular, TokenType.SingleQuotedString, TokenType.DoubleQuotedString);
                                         break;
                                     case 1:
                                         if (tok.Type == TokenType.EOL)
                                             state = 2;
-                                        else if (tok.Type == TokenType.COMMA)
+                                        else if (tok.Type == TokenType.Comma)
                                             state = 0;
                                         else
-                                            throw UnexpectedToken(tok, TokenType.COMMA);
+                                            throw UnexpectedToken(tok, TokenType.Comma);
                                         break;
                                 }
 
@@ -442,24 +442,24 @@ namespace MFSJSoft.Data.Scripting.Parser
 
                         if (cur == ',')
                         {
-                            return Emit(TokenType.COMMA, ",");
+                            return Emit(TokenType.Comma, ",");
                         }
                         else if (cur == '#')
                         {
-                            return Emit(TokenType.HASH_TAG, "#");
+                            return Emit(TokenType.HashTag, "#");
                         }
                         else if (cur == ':')
                         {
-                            return Emit(TokenType.COLON, ":");
+                            return Emit(TokenType.Colon, ":");
                         }
                         else if (cur == '/')
                         {
                             if (La(1))
-                                return Emit(TokenType.REG_TOK, buf.ToString());
+                                return Emit(TokenType.Regular, buf.ToString());
                             if (laCh == '*')
                             {
                                 AdvPos();
-                                return Emit(TokenType.BLOCK_START, "/*");
+                                return Emit(TokenType.BlockStart, "/*");
                             }
                             else
                             {
@@ -470,16 +470,16 @@ namespace MFSJSoft.Data.Scripting.Parser
                         else if (cur == '*')
                         {
                             if (La(1))
-                                return Emit(TokenType.REG_TOK, buf.ToString());
+                                return Emit(TokenType.Regular, buf.ToString());
                             if (laCh == '*')
                             {
                                 AdvPos();
-                                return Emit(TokenType.DOUBLE_STAR, "**");
+                                return Emit(TokenType.DoubleStar, "**");
                             }
                             else if (laCh == '/')
                             {
                                 AdvPos();
-                                return Emit(TokenType.BLOCK_STOP, "*/");
+                                return Emit(TokenType.BlockStop, "*/");
                             }
                             else
                             {
@@ -490,11 +490,11 @@ namespace MFSJSoft.Data.Scripting.Parser
                         else if (cur == '-')
                         {
                             if (La(1))
-                                return Emit(TokenType.REG_TOK, buf.ToString());
+                                return Emit(TokenType.Regular, buf.ToString());
                             if (laCh == '-')
                             {
                                 AdvPos();
-                                return Emit(TokenType.LINE_COMMENT_TOK);
+                                return Emit(TokenType.LineComment);
                             }
                             else
                             {
@@ -533,7 +533,7 @@ namespace MFSJSoft.Data.Scripting.Parser
                         else if (cur == statementTerminator[0])
                         {
                             if (statementTerminator.Length == 1)
-                                return Emit(TokenType.STATEMENT_TERMINATOR, statementTerminator);
+                                return Emit(TokenType.StatementTerminator, statementTerminator);
                             else
                             {
                                 ++terminatorPos;
@@ -549,14 +549,14 @@ namespace MFSJSoft.Data.Scripting.Parser
 
                     // Single Quoted String
                     case 1:
-                        var squote = DoQuote('\'', TokenType.SINGLE_QUOTED_STRING);
+                        var squote = DoQuote('\'', TokenType.SingleQuotedString);
                         if (squote is not null)
                             return squote;
                         break;
 
                     // Double Quoted String
                     case 2:
-                        var dqote = DoQuote('"', TokenType.DOUBLE_QUOTED_STRING);
+                        var dqote = DoQuote('"', TokenType.DoubleQuotedString);
                         if (dqote is not null)
                             return dqote;
                         break;
@@ -573,14 +573,14 @@ namespace MFSJSoft.Data.Scripting.Parser
                     // Statement Terminator
                     case 4:
                         if (eof)
-                            return Emit(TokenType.REG_TOK, buf.ToString());
+                            return Emit(TokenType.Regular, buf.ToString());
                         if (cur == statementTerminator[terminatorPos])
                         {
                             ++terminatorPos;
                             if (terminatorPos == statementTerminator.Length)
                             {
                                 state = 0;
-                                return Emit(TokenType.STATEMENT_TERMINATOR, statementTerminator);
+                                return Emit(TokenType.StatementTerminator, statementTerminator);
                             }
                         }
                         else
@@ -595,7 +595,7 @@ namespace MFSJSoft.Data.Scripting.Parser
                         if (eof || La(1) || !IsReg(laCh))
                         {
                             state = 0;
-                            return Emit(TokenType.REG_TOK, buf.ToString());
+                            return Emit(TokenType.Regular, buf.ToString());
                         }
                         break;
 
@@ -662,7 +662,7 @@ namespace MFSJSoft.Data.Scripting.Parser
                             AdvPos();
                             state = 0;
                             tripleQuote = false;
-                            return Emit(TokenType.MULTILINE_STRING, buf.ToString(), valBuf.ToString());
+                            return Emit(TokenType.MultilineString, buf.ToString(), valBuf.ToString());
                         }
                         else
                         {

@@ -281,7 +281,7 @@ namespace MFSJSoft.Data.Scripting
                         var directive = statement.Directives[directiveId];
 
                         var initialization = processor.InitDirective(directive);
-                        if ((initialization.Action & DirectiveInitializationAction.REPLACE_TEXT) == DirectiveInitializationAction.REPLACE_TEXT)
+                        if ((initialization.Action & DirectiveInitializationAction.ReplaceText) == DirectiveInitializationAction.ReplaceText)
                         {
                             buf.Append(initialization.ReplacementText);
                         }
@@ -289,8 +289,8 @@ namespace MFSJSoft.Data.Scripting
                         var initializedDirective = new InitializedDirective(directive, directiveId, initialization.InitializedState);
 
                         
-                        var deferred = (initialization.Action & DirectiveInitializationAction.DEFER_SETUP) == DirectiveInitializationAction.DEFER_SETUP;
-                        var noStore = (initialization.Action & DirectiveInitializationAction.NO_STORE) == DirectiveInitializationAction.NO_STORE;
+                        var deferred = (initialization.Action & DirectiveInitializationAction.DeferSetup) == DirectiveInitializationAction.DeferSetup;
+                        var noStore = (initialization.Action & DirectiveInitializationAction.NoStore) == DirectiveInitializationAction.NoStore;
                         
                         if (noStore && deferred)
                         {
@@ -417,12 +417,12 @@ namespace MFSJSoft.Data.Scripting
                         throw new InvalidOperationException();
                     }
 
-                    if ((initialization.Action & DirectiveInitializationAction.REPLACE_TEXT) == DirectiveInitializationAction.REPLACE_TEXT)
+                    if ((initialization.Action & DirectiveInitializationAction.ReplaceText) == DirectiveInitializationAction.ReplaceText)
                     {
                         buf.Append(initialization.ReplacementText);
                     }
 
-                    if ((initialization.Action & DirectiveInitializationAction.NO_STORE) == DirectiveInitializationAction.NO_STORE)
+                    if ((initialization.Action & DirectiveInitializationAction.NoStore) == DirectiveInitializationAction.NoStore)
                     {
                         setupDirectives.RemoveAt(targetIndex);
                     }

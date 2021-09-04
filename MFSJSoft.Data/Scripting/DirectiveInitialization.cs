@@ -7,10 +7,10 @@ namespace MFSJSoft.Data.Scripting
     [Flags]
     public enum DirectiveInitializationAction
     {
-        DEFAULT = 0,
-        NO_STORE = 1,
-        REPLACE_TEXT = 2,
-        DEFER_SETUP = 4
+        Default = 0,
+        NoStore = 1,
+        ReplaceText = 2,
+        DeferSetup = 4
     }
 
     public class DirectiveInitialization

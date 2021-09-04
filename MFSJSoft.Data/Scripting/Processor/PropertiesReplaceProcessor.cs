@@ -54,22 +54,22 @@ namespace MFSJSoft.Data.Scripting.Processor
 
             if (deferRuntime)
             {
-                return new DirectiveInitialization(new InitializedState(propertyName, replaceValue, propertyValue, elseValue, negated), DirectiveInitializationAction.DEFER_SETUP);
+                return new DirectiveInitialization(new InitializedState(propertyName, replaceValue, propertyValue, elseValue, negated), DirectiveInitializationAction.DeferSetup);
             }
 
             if (Eval(propertyName, propertyValue, negated))
             {
-                return new DirectiveInitialization(action: DirectiveInitializationAction.REPLACE_TEXT | DirectiveInitializationAction.NO_STORE, replacementText: replaceValue);
+                return new DirectiveInitialization(action: DirectiveInitializationAction.ReplaceText | DirectiveInitializationAction.NoStore, replacementText: replaceValue);
             }
             else
             {
                 if (elseValue is not null)
                 {
-                    return new DirectiveInitialization(action: DirectiveInitializationAction.REPLACE_TEXT | DirectiveInitializationAction.NO_STORE, replacementText: elseValue);
+                    return new DirectiveInitialization(action: DirectiveInitializationAction.ReplaceText | DirectiveInitializationAction.NoStore, replacementText: elseValue);
                 }
                 else
                 {
-                    return new DirectiveInitialization(action: DirectiveInitializationAction.NO_STORE);
+                    return new DirectiveInitialization(action: DirectiveInitializationAction.NoStore);
                 }
             }
         }
@@ -84,13 +84,13 @@ namespace MFSJSoft.Data.Scripting.Processor
             var initData = (InitializedState) initState;
             if (Eval(initData.PropertyName, initData.PropertyValue, initData.Negated))
             {
-                return new DirectiveInitialization(action: DirectiveInitializationAction.REPLACE_TEXT, replacementText: initData.ReplaceValue);
+                return new DirectiveInitialization(action: DirectiveInitializationAction.ReplaceText, replacementText: initData.ReplaceValue);
             }
             else
             {
                 if (initData.ElseValue is not null)
                 {
-                    return new DirectiveInitialization(action: DirectiveInitializationAction.REPLACE_TEXT, replacementText: initData.ElseValue);
+                    return new DirectiveInitialization(action: DirectiveInitializationAction.ReplaceText, replacementText: initData.ElseValue);
                 }
                 else
                 {
