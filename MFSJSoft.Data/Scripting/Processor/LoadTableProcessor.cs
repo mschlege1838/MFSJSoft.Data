@@ -85,7 +85,7 @@ namespace MFSJSoft.Data.Scripting.Processor
             var selectStatement = ToSelectStatement(tableName, parameters);
             var insertStatement = ToInsertStatement(tableName, parameters);
 
-            return new DirectiveInitialization(new LoadTableInitializedState(tableName, createStatement, selectStatement, insertStatement, new List<DbParameter>(from pData in parameters select pData.ToParameter(context.ProviderFactory))));
+            return new DirectiveInitialization(new LoadTableInitializedState(tableName, createStatement, selectStatement, insertStatement, from pData in parameters select pData.ToParameter(context.ProviderFactory)));
         }
 
         public DirectiveInitialization SetupDirective(CompositeProcessorContext context, ScriptDirective directive, object initState)

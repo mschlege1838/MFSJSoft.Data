@@ -38,7 +38,7 @@ namespace MFSJSoft.Data.Util
     ///     </item>
     ///     <item>
     ///         <term><see cref="Parameters">Parameters</see></term>
-    ///         <description>Repeatable <see cref="IEnumerable{T}"/> of <see cref="DbParameter"/> instances configured for batch
+    ///         <description><see cref="IEnumerable{T}"/> of <see cref="DbParameter"/> instances configured for batch
     ///         inserts. I.e. the <see cref="DbParameter.ParameterName">ParameterName</see>, <see cref="DbParameter.DbType">DbType</see>,
     ///         <see cref="DbParameter.SourceColumn">SourceColumn</see>, and optionally the <see cref="DbParameter.Size">Size</see>,
     ///         <see cref="DbParameter.Precision">Precision</see>, and/or <see cref="DbParameter.Scale">Scale</see> properties
@@ -183,8 +183,8 @@ namespace MFSJSoft.Data.Util
         public string InsertStatement { get; set; }
 
         /// <summary>
-        /// Repeatable <see cref="IEnumerable{T}">enumeration</see> of <see cref="DbParameter"/> instances matching
-        /// those defined in <see cref="InsertStatement">InsertStatement</see>
+        /// <see cref="IEnumerable{T}">Enumeration</see> of <see cref="DbParameter"/> instances matching those defined in 
+        /// <see cref="InsertStatement">InsertStatement</see>.
         /// </summary>
         public IEnumerable<DbParameter> Parameters { get; set; }
         
@@ -277,7 +277,7 @@ namespace MFSJSoft.Data.Util
                 }
 
                 var table = new DataTable();
-                foreach (var parameter in Parameters)
+                foreach (var parameter in new List<DbParameter>(Parameters))
                 {
                     var column = new DataColumn
                     {
