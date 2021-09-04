@@ -35,15 +35,18 @@ namespace MFSJSoft.Data.Scripting.Processor
     public class CompositeProcessorConfiguration
     {
         public DbProviderFactory ProviderFactory { get; set; }
-        public int CommandTimeout { get; set; } = 30;
+        public int CommandTimeout { get; set; } = CompositeProcessor.DefaultTimeout;
         public IDictionary<Type, object> DirectiveConfiguration { get; set; }
     }
 
     public class CompositeProcessor : IScriptProcessor
     {
 
+        public const int DefaultTimeout = 30;
+
         readonly CompositeProcessorContext context;
         readonly ICollection<IDirectiveProcessor> processors;
+        int commandTimeout = DefaultTimeout;
 
         public CompositeProcessor(DbProviderFactory providerFactory, DbConnection connection, DbTransaction transaction, params IDirectiveProcessor[] processors)
         {
@@ -66,6 +69,12 @@ namespace MFSJSoft.Data.Scripting.Processor
 
         }
 
+        public int CommandTimeout
+        {
+            get => commandTimeout;
+            set => context.CommandTimeout = commandTimeout = value;
+        }
+
         public void InitProcessor(object configuration, ILogger logger)
         {
             if (configuration is not null && configuration is CompositeProcessorConfiguration lcfg)
@@ -76,6 +85,10 @@ namespace MFSJSoft.Data.Scripting.Processor
                 }
 
                 context.CommandTimeout = lcfg.CommandTimeout;
+                if (commandTimeout != DefaultTimeout)
+                {
+                    context.CommandTimeout = commandTimeout;
+                }
 
                 foreach (var processor in processors)
                 {
