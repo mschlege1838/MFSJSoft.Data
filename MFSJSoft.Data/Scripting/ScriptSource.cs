@@ -36,7 +36,7 @@ namespace MFSJSoft.Data.Scripting
         {
             Source = source ?? throw new ArgumentNullException(nameof(source));
             Name = name;
-            StatementTerminator = statementTerminator;
+            StatementTerminator = statementTerminator ?? DefaultStatementTerminator;
             
             foreach (var ch in ScriptLexer.SigChars)
             {
