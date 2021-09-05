@@ -149,6 +149,21 @@ namespace MFSJSoft.Data.Scripting.Processor
             set => context.CommandTimeout = commandTimeout = value;
         }
 
+        /// <summary>
+        /// Analog method for <see cref="IScriptProcessor.InitDirective" />. The <see cref="IDirectiveProcessor.InitDirective"/>
+        /// method is called for each processor given in the constructor.
+        /// </summary>
+        /// <remarks>
+        /// <para>As the <see cref="CompositeProcessor"/> is a <see cref="IScriptProcessor"/>, the global configuration object is
+        /// the value keyed under the <see cref="CompositeProcessor"/> type in the global configuration given to the constructor
+        /// of <see cref="ScriptExecutor"/>.</para>
+        /// 
+        /// <para>Global configuration values for individual <see cref="IDirectiveProcessor">IDirectiveProcessors</see>
+        /// should be given in the <see cref="CompositeProcessorConfiguration.DirectiveConfiguration"/> property of the global
+        /// configuration for <see cref="CompositeProcessor"/>.</para>
+        /// </remarks>
+        /// <param name="configuration">Global configuration object applicable to <see cref="CompositeProcessor"/>.</param>
+        /// <param name="logger">Global <see cref="ILogger"/> associated with the parent <see cref="ScriptExecutor"/>.</param>
         public void InitProcessor(object configuration, ILogger logger)
         {
             if (configuration is not null && configuration is CompositeProcessorConfiguration lcfg)
