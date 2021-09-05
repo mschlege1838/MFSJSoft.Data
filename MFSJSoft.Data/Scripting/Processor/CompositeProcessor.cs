@@ -150,7 +150,7 @@ namespace MFSJSoft.Data.Scripting.Processor
         }
 
         /// <summary>
-        /// Analog method for <see cref="IScriptProcessor.InitDirective" />. The <see cref="IDirectiveProcessor.InitDirective"/>
+        /// Analog for <see cref="IScriptProcessor.InitProcessor" />. The <see cref="IDirectiveProcessor.InitProcessor"/>
         /// method is called for each processor given in the constructor.
         /// </summary>
         /// <remarks>
@@ -206,6 +206,16 @@ namespace MFSJSoft.Data.Scripting.Processor
             }
         }
 
+        /// <summary>
+        /// Analog for <see cref="IScriptProcessor.InitDirective"/>. The <see cref="IDirectiveProcessor.InitDirective"/> method
+        /// is called for each processor given in the constructor until a <see cref="DirectiveInitialization"/> is successfully
+        /// returned.
+        /// </summary>
+        /// <param name="directive"><see cref="ScriptDirective" /> to be initialized.</param>
+        /// <returns>First <see cref="DirectiveInitialization"/> returned by a call to the <see cref="IDirectiveProcessor.InitDirective"/>
+        /// of any of the processors given in the constructor.</returns>
+        /// <exception cref="UnrecognizedDirectiveException">If none of the processors given in the constructor successfully
+        /// return a <see cref="DirectiveInitialization"/>.</exception>
         public DirectiveInitialization InitDirective(ScriptDirective directive)
         {
             foreach (var processor in processors)
