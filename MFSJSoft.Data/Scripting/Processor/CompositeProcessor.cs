@@ -36,7 +36,7 @@ namespace MFSJSoft.Data.Scripting.Processor
     {
         public DbProviderFactory ProviderFactory { get; set; }
         public int CommandTimeout { get; set; } = CompositeProcessor.DefaultTimeout;
-        public IDictionary<Type, object> DirectiveConfiguration { get; set; }
+        public IDictionary<object, object> DirectiveConfiguration { get; set; }
     }
 
 
@@ -161,6 +161,10 @@ namespace MFSJSoft.Data.Scripting.Processor
         /// <para>Global configuration values for individual <see cref="IDirectiveProcessor">IDirectiveProcessors</see>
         /// should be given in the <see cref="CompositeProcessorConfiguration.DirectiveConfiguration"/> property of the global
         /// configuration for <see cref="CompositeProcessor"/>.</para>
+        /// 
+        /// <para>As with how distinct <see cref="IScriptProcessor"/> types are identified in <see cref="ScriptExecutor"/>, if
+        /// an <see cref="IDirectiveProcessor"/> implements <see cref="IIdentifiable"/>, its <see cref="IIdentifiable.Id"/> property
+        /// will be used to identify it, otherwise its runtime <see cref="object.GetType">type</see>.</para>
         /// </remarks>
         /// <param name="configuration">Global configuration object applicable to <see cref="CompositeProcessor"/>.</param>
         /// <param name="logger">Global <see cref="ILogger"/> associated with the parent <see cref="ScriptExecutor"/>.</param>
@@ -181,10 +185,10 @@ namespace MFSJSoft.Data.Scripting.Processor
 
                 foreach (var processor in processors)
                 {
-                    var processorType = processor.GetType();
-                    if (lcfg.DirectiveConfiguration is not null && lcfg.DirectiveConfiguration.ContainsKey(processorType))
+                    var processorKey = (processor is IIdentifiable lp) ? lp.Id : processor.GetType();
+                    if (lcfg.DirectiveConfiguration is not null && lcfg.DirectiveConfiguration.ContainsKey(processorKey))
                     {
-                        processor.InitProcessor(lcfg.DirectiveConfiguration[processorType]);
+                        processor.InitProcessor(lcfg.DirectiveConfiguration[processorKey]);
                     }
                     else
                     {
