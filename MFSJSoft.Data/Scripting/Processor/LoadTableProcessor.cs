@@ -41,7 +41,7 @@ namespace MFSJSoft.Data.Scripting.Processor
             this.dbTypeMapping = dbTypeMapping;
         }
 
-        public void InitProcessor(object configuration)
+        public void InitProcessor(CompositeProcessorContext context, object configuration)
         {
             if (configuration is not null && configuration is LoadTableProcessorConfiguration lcfg)
             {

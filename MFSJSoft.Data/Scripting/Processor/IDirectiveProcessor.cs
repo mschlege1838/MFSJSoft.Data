@@ -7,7 +7,7 @@ namespace MFSJSoft.Data.Scripting.Processor
     public interface IDirectiveProcessor
     {
 
-        void InitProcessor(object configuration);
+        void InitProcessor(CompositeProcessorContext context, object configuration);
 
         DirectiveInitialization InitDirective(CompositeProcessorContext context, ScriptDirective directive);
 

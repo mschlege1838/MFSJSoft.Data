@@ -19,7 +19,7 @@ namespace MFSJSoft.Data.Scripting.Processor
             this.callback = callback ?? throw new ArgumentNullException(nameof(callback));
         }
 
-        public void InitProcessor(object config)
+        public void InitProcessor(CompositeProcessorContext context, object config)
         {
 
         }

@@ -15,7 +15,7 @@ namespace MFSJSoft.Data.Scripting.Processor
 
         }
 
-        public void InitProcessor(object configuration)
+        public void InitProcessor(CompositeProcessorContext context, object configuration)
         {
             Init(configuration);
         }

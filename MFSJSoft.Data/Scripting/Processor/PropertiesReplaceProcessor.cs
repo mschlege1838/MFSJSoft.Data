@@ -17,7 +17,7 @@ namespace MFSJSoft.Data.Scripting.Processor
             this.deferRuntime = deferRuntime;
         }
 
-        public void InitProcessor(object configuration)
+        public void InitProcessor(CompositeProcessorContext context, object configuration)
         {
             Init(configuration);
         }

@@ -170,7 +170,9 @@ namespace MFSJSoft.Data.Scripting.Processor
         /// <param name="logger">Global <see cref="ILogger"/> associated with the parent <see cref="ScriptExecutor"/>.</param>
         public void InitProcessor(object configuration, ILogger logger)
         {
-            if (configuration is not null && configuration is CompositeProcessorConfiguration lcfg)
+            // Initialize CompositeProcessor
+            var lcfg = configuration as CompositeProcessorConfiguration;
+            if (lcfg is not null)
             {
                 if (context.ProviderFactory is null && lcfg.ProviderFactory is not null)
                 {
@@ -183,19 +185,6 @@ namespace MFSJSoft.Data.Scripting.Processor
                     context.CommandTimeout = commandTimeout;
                 }
 
-                foreach (var processor in processors)
-                {
-                    var processorKey = (processor is IIdentifiable lp) ? lp.Id : processor.GetType();
-                    if (lcfg.DirectiveConfiguration is not null && lcfg.DirectiveConfiguration.ContainsKey(processorKey))
-                    {
-                        processor.InitProcessor(lcfg.DirectiveConfiguration[processorKey]);
-                    }
-                    else
-                    {
-                        processor.InitProcessor(null);
-                    }
-                }
-
             }
 
             context.Logger = logger;
@@ -203,6 +192,20 @@ namespace MFSJSoft.Data.Scripting.Processor
             if (context.ProviderFactory is null)
             {
                 throw new NullReferenceException($"Provider Factory must either be provided in a constructor of {typeof(CompositeProcessorContext)}, or in the applicable global configuration of parent {typeof(ScriptExecutor)}.");
+            }
+
+            // Initialize directive processors.
+            foreach (var processor in processors)
+            {
+                var processorKey = (processor is IIdentifiable lp) ? lp.Id : processor.GetType();
+                if (lcfg?.DirectiveConfiguration is not null && lcfg.DirectiveConfiguration.ContainsKey(processorKey))
+                {
+                    processor.InitProcessor(context, lcfg.DirectiveConfiguration[processorKey]);
+                }
+                else
+                {
+                    processor.InitProcessor(context, null);
+                }
             }
         }
 
