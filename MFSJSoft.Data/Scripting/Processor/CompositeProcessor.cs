@@ -46,14 +46,8 @@ namespace MFSJSoft.Data.Scripting.Processor
     /// </summary>
     /// <remarks>
     /// 
-    /// <para>Generally, application code will use the predefined <see cref="IDirectiveProcessor">IDirectiveProcessors</see>, but the manner in which 
-    /// <see cref="IDirectiveProcessor">IDirectiveProcessors</see> are executed is defined below. The description assumes famailiartiy with how 
-    /// <see cref="ScriptExecutor"/> executes <see cref="IScriptProcessor">IScriptProcessors</see>, as this class simply delegates to a collection of
-    /// <see cref="IDirectiveProcessor">IDirectiveProcessors</see> to enable compositing individual script directive handlers, rather than having to resort
-    /// to one monolithic <see cref="IScriptProcessor"/>.</para>
-    /// 
-    /// <para>For more information on the predefined directive handlers, and examples of their usage with <see cref="CompositeProcessor"/>, please see
-    /// their documentation pages:</para>
+    /// <para>Generally, application code will use the predefined <see cref="IDirectiveProcessor">IDirectiveProcessors</see>. For more information on them,
+    /// and examples of their usage, please see their documentation pages:</para>
     /// <list type="bullet">
     ///     <item><see cref="CallbackProcessor"/></item>
     ///     <item><see cref="ExecuteIfProcessor"/></item>
@@ -62,13 +56,18 @@ namespace MFSJSoft.Data.Scripting.Processor
     ///     <item><see cref="LoadTableProcessor"/></item>
     /// </list>
     /// 
+    /// <para>The manner in which <see cref="IDirectiveProcessor">IDirectiveProcessors</see> are executed is defined below. The description assumes 
+    /// famailiartiy with how  <see cref="ScriptExecutor"/> executes <see cref="IScriptProcessor">IScriptProcessors</see>, as this class simply delegates
+    /// to a collection of <see cref="IDirectiveProcessor">IDirectiveProcessors</see> to enable compositing individual script directive handlers, rather than
+    /// having to resort to one monolithic <see cref="IScriptProcessor"/>.</para>
+    /// 
     /// <para>For each directive encountered in a script, this class iterates its collection of <see cref="IDirectiveProcessor">IDirectiveProcessors</see>, calling
-    /// each of the respective methods common to <see cref="IScriptProcessor"/>.</para>
+    /// each of the respective methods analogous to <see cref="IScriptProcessor"/>.</para>
     /// 
     /// <para>For <see cref="IDirectiveProcessor.InitDirective"/> and <see cref="IDirectiveProcessor.SetupDirective"/>, the first non-<see langword="null"/>
-    /// <see cref="DirectiveInitialization"/> successsfully returned from the <see cref="IDirectiveProcessor"/> is returned from this class's respective 
-    /// <see cref="IScriptProcessor"/> method. If <see cref="IDirectiveProcessor.InitDirective"/> or <see cref="IDirectiveProcessor.SetupDirective"/> throws an 
-    /// <see cref="UnrecognizedDirectiveException"/>, it is treated identically to a <see langword="null"/> return value. If no <see cref="DirectiveInitialization"/>
+    /// <see cref="DirectiveInitialization"/> successsfully returned from any of the <see cref="IDirectiveProcessor">IDirectiveProcessors</see> is returned from
+    /// this class's respective <see cref="IScriptProcessor"/> method. If <see cref="IDirectiveProcessor.InitDirective"/> or <see cref="IDirectiveProcessor.SetupDirective"/>
+    /// throws an <see cref="UnrecognizedDirectiveException"/>, it is treated identically to a <see langword="null"/> return value. If no <see cref="DirectiveInitialization"/>
     /// is successfully returned from any <see cref="IDirectiveProcessor"/>, an <see cref="UnrecognizedDirectiveException"/> is thrown up to the parent
     /// <see cref="ScriptExecutor"/>.</para>
     /// 
@@ -84,9 +83,9 @@ namespace MFSJSoft.Data.Scripting.Processor
         /// Default timeout for generic <see cref="DbCommand">DbCommands</see> <see cref="CompositeProcessorContext">created</see> within the
         /// context of a <see cref="CompositeProcessor"/>.
         /// </summary>
-        /// <remarks>
+        /// <value>
         /// Consistent with SQL Server, the default value is 30s.
-        /// </remarks>
+        /// </value>
         public const int DefaultTimeout = 30;
 
         readonly CompositeProcessorContext context;
@@ -150,16 +149,15 @@ namespace MFSJSoft.Data.Scripting.Processor
         }
 
         /// <summary>
-        /// Analog for <see cref="IScriptProcessor.InitProcessor" />. The <see cref="IDirectiveProcessor.InitProcessor"/>
-        /// method is called for each processor given in the constructor.
+        /// The <see cref="IDirectiveProcessor.InitProcessor"/> method is called for each processor given in the constructor.
         /// </summary>
         /// <remarks>
-        /// <para>As the <see cref="CompositeProcessor"/> is a <see cref="IScriptProcessor"/>, the global configuration object is
+        /// <para>As the <see cref="CompositeProcessor"/> is an <see cref="IScriptProcessor"/>, the <c>configuration</c> is
         /// the value keyed under the <see cref="CompositeProcessor"/> type in the global configuration given to the constructor
         /// of <see cref="ScriptExecutor"/>.</para>
         /// 
         /// <para>Global configuration values for individual <see cref="IDirectiveProcessor">IDirectiveProcessors</see>
-        /// should be given in the <see cref="CompositeProcessorConfiguration.DirectiveConfiguration"/> property of the global
+        /// should be given in the <see cref="CompositeProcessorConfiguration.DirectiveConfiguration"/> of the global
         /// configuration for <see cref="CompositeProcessor"/>.</para>
         /// 
         /// <para>As with how distinct <see cref="IScriptProcessor"/> types are identified in <see cref="ScriptExecutor"/>, if
@@ -210,12 +208,11 @@ namespace MFSJSoft.Data.Scripting.Processor
         }
 
         /// <summary>
-        /// Analog for <see cref="IScriptProcessor.InitDirective"/>. The <see cref="IDirectiveProcessor.InitDirective"/> method
-        /// is called for each processor given in the constructor until a <see cref="DirectiveInitialization"/> is successfully
-        /// returned.
+        /// The <see cref="IDirectiveProcessor.InitDirective"/> method is called for each processor given in the constructor until
+        /// a <see cref="DirectiveInitialization"/> is successfully returned.
         /// </summary>
         /// <param name="directive"><see cref="ScriptDirective" /> to be initialized.</param>
-        /// <returns>First <see cref="DirectiveInitialization"/> returned by a call to the <see cref="IDirectiveProcessor.InitDirective"/>
+        /// <returns>First <see cref="DirectiveInitialization"/> returned by a call to <see cref="IDirectiveProcessor.InitDirective"/>
         /// of any of the processors given in the constructor.</returns>
         /// <exception cref="UnrecognizedDirectiveException">If none of the processors given in the constructor successfully
         /// return a <see cref="DirectiveInitialization"/>.</exception>
@@ -243,6 +240,16 @@ namespace MFSJSoft.Data.Scripting.Processor
             throw new UnrecognizedDirectiveException(directive);
         }
 
+        /// <summary>
+        /// The <see cref="IDirectiveProcessor.SetupDirective"/> method is called for each processor that indicated
+        /// <see cref="DirectiveInitializationAction.DeferSetup"/> from <see cref="IDirectiveProcessor.InitDirective"/> until a
+        /// <see cref="DirectiveInitialization"/> is successfully returned.
+        /// </summary>
+        /// <param name="directive"><see cref="ScriptDirective" /> to be set up.</param>
+        /// <param name="initState"><see cref="DirectiveInitialization.InitializedState"/> returned from <see cref="InitDirective"/>.</param>
+        /// <returns>First <see cref="DirectiveInitialization"/> returned by a call to <see cref="IDirectiveProcessor.SetupDirective"/>.</returns>
+        /// <exception cref="UnrecognizedDirectiveException">If none of the processors that indicated <see cref="DirectiveInitializationAction.DeferSetup"/>
+        /// from <see cref="IDirectiveProcessor.InitDirective"/> successfully return a <see cref="DirectiveInitialization"/>.</exception>
         public DirectiveInitialization SetupDirective(ScriptDirective directive, object initState)
         {
             foreach (var processor in processors)
@@ -266,6 +273,19 @@ namespace MFSJSoft.Data.Scripting.Processor
             throw new InvalidDirectiveException($"Processor requested directive setup, but no matching processor found: {directive:S}", directive);
         }
 
+        /// <summary>
+        /// The <see cref="IDirectiveProcessor.TryExecute"/> is called for each processor that did not indicate
+        /// <see cref="DirectiveInitializationAction.NoStore"/> in <see cref="IDirectiveProcessor.InitDirective"/> or
+        /// (if applicable) <see cref="IDirectiveProcessor.SetupDirective"/>
+        /// </summary>
+        /// <remarks>
+        /// If none of the processors return <see langword="true" />, a generic <see cref="DbCommand"/> is
+        /// <see cref="CompositeProcessorContext.NewCommand">created</see> and <see cref="DbCommand.ExecuteNonQuery">executed</see>
+        /// as a non-query.
+        /// </remarks>
+        /// <param name="text">Resolved statement text.</param>
+        /// <param name="directives"><see cref="ScriptDirective">Directives</see> associated with the statement in declaration order,
+        /// coupled with the final <see cref="DirectiveInitialization.InitializedState"/> for each.</param>
         public void ExecuteStatement(string text, IList<(ScriptDirective, object)> directives)
         {
             var executed = false;
