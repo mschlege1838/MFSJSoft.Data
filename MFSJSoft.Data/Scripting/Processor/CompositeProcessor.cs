@@ -8,6 +8,9 @@ using Microsoft.Extensions.Logging;
 namespace MFSJSoft.Data.Scripting.Processor
 {
 
+    /// <summary>
+    /// Context passed to all the methods of <see cref="IDirectiveProcessor"/>.
+    /// </summary>
     public class CompositeProcessorContext
     {
         internal CompositeProcessorContext(DbConnection connection, DbTransaction transaction)
@@ -16,12 +19,38 @@ namespace MFSJSoft.Data.Scripting.Processor
             Transaction = transaction;
         }
 
+
+        /// <summary>
+        /// <see cref="DbProviderFactory"/> associated with the parent <see cref="CompositeProcessor"/>
+        /// </summary>
         public DbProviderFactory ProviderFactory { get; internal set; }
+
+        /// <summary>
+        /// Current <see cref="DbConnection"/>.
+        /// </summary>
         public DbConnection Connection { get; }
+
+        /// <summary>
+        /// Current <see cref="DbTransaction"/>, if any.
+        /// </summary>
         public DbTransaction Transaction { get; }
+
+        /// <summary>
+        /// Timeout for <see cref="DbCommand"/> instances returned by <see cref="NewCommand"/>.
+        /// </summary>
         public int CommandTimeout { get; internal set; }
+
+        /// <summary>
+        /// <see cref="ILogger"/> associated with this context. If <see langword="null"/>, error and warning information
+        /// should generally be written to the <see cref="Console"/>.
+        /// </summary>
         public ILogger Logger { get; internal set; }
 
+
+        /// <summary>
+        /// Creates a new <see cref="DbCommand"/> with <see cref="Connection"/>, <see cref="Transaction"/> and <see cref="CommandTimeout"/>.
+        /// </summary>
+        /// <returns>A new <see cref="DbCommand"/> with <see cref="Connection"/>, <see cref="Transaction"/> and <see cref="CommandTimeout"/>.</returns>
         public DbCommand NewCommand()
         {
             var result = ProviderFactory.CreateCommand();
@@ -32,10 +61,28 @@ namespace MFSJSoft.Data.Scripting.Processor
         }
     }
 
+    /// <summary>
+    /// Global configuration object for <see cref="CompositeProcessor"/>. It should be keyed under the <see langword="typeof">type of</see>
+    /// <see cref="CompositeProcessor"/>.
+    /// </summary>
     public class CompositeProcessorConfiguration
     {
+
+        /// <summary>
+        /// Common <see cref="DbProviderFactory"/> for creating <see cref="DbCommand"/>, <see cref="DbParameter"/>, etc. instances.
+        /// </summary>
         public DbProviderFactory ProviderFactory { get; set; }
+        
+        /// <summary>
+        /// Default timeout in seconds of commands <see cref="CompositeProcessorContext.NewCommand">created</see> within the context of
+        /// <see cref="CompositeProcessor"/> instances.
+        /// </summary>
         public int CommandTimeout { get; set; } = CompositeProcessor.DefaultTimeout;
+        
+        /// <summary>
+        /// Global configuration for individual <see cref="IDirectiveProcessor">IDirectiveProcessors</see>. Analogous to the <c>processorConfig</c>
+        /// argument to the constructor of <see cref="ScriptExecutor"/>
+        /// </summary>
         public IDictionary<object, object> DirectiveConfiguration { get; set; }
     }
 
