@@ -72,7 +72,7 @@ namespace MFSJSoft.Data.Scripting.Processor
             var value = properties.GetProperty(propName);
             if (value is null)
             {
-                return false;
+                return negate;
             }
 
             var result = propValue is null || propValue == "*" ? value.ToLower() != "false" : value == propValue;
