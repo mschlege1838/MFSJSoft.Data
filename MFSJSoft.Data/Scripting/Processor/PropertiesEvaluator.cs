@@ -3,8 +3,15 @@
 namespace MFSJSoft.Data.Scripting.Processor
 {
 
+    /// <summary>
+    /// Global configuration object for <see cref="PropertiesEvaluator"/> derivitives.
+    /// </summary>
     public class PropertiesDirectiveConfiguration
     {
+
+        /// <summary>
+        /// Backing <see cref="IProperties"/> to use when evaluating properties.
+        /// </summary>
         public IProperties Properties { get; set; }
     }
 
