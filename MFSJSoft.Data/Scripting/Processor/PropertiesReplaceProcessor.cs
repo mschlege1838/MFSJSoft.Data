@@ -3,6 +3,17 @@ using System;
 
 namespace MFSJSoft.Data.Scripting.Processor
 {
+
+    /// <summary>
+    /// Internal base class for <see cref="IProperties"/>-backed <see cref="IDirectiveProcessor"/> implementations
+    /// that update statement text with property values. Application code will generally not need to use this.
+    /// </summary>
+    /// <remarks>
+    /// The <see cref="DirectiveInitializationAction.ReplaceText"/> action is used for text replacement. If the
+    /// <c>deferRuntime</c> argument to the constructor is <see langword="true"/>,
+    /// <see cref="DirectiveInitializationAction.DeferSetup"/> will be specified, otherwise
+    /// <see cref="DirectiveInitializationAction.NoStore"/>.
+    /// </remarks>
     public class PropertiesReplaceProcessor : PropertiesEvaluator, IDirectiveProcessor
     {
 
@@ -10,6 +21,15 @@ namespace MFSJSoft.Data.Scripting.Processor
         readonly string negatedDirectiveName;
         readonly bool deferRuntime;
 
+        /// <summary>
+        /// Primary constructor.
+        /// </summary>
+        /// <param name="directiveName">Name of the directive the derived class handles.</param>
+        /// <param name="negatedDirectiveName">Name of directive the derived class handles when negation is to be applied.</param>
+        /// <param name="properties">Backing <see cref="IProperties"/>. Uses <see cref="PropertiesDirectiveConfiguration.Properties"/>
+        /// from global configuration if <see langword="null" /></param>
+        /// <param name="deferRuntime"><see langword="true"/> to <see cref="DirectiveInitializationAction.DeferSetup">defer</see> to
+        /// execution time, otherwise <see langword="false"/>.</param>
         public PropertiesReplaceProcessor(string directiveName, string negatedDirectiveName, IProperties properties, bool deferRuntime) : base(properties)
         {
             this.directiveName = string.IsNullOrEmpty(directiveName) ? throw new ArgumentNullException(nameof(directiveName)) : directiveName;
@@ -17,11 +37,48 @@ namespace MFSJSoft.Data.Scripting.Processor
             this.deferRuntime = deferRuntime;
         }
 
+        /// <summary>
+        /// Calls <see cref="PropertiesEvaluator.Init(object)"/>.
+        /// </summary>
+        /// <param name="context">Not used.</param>
+        /// <param name="configuration">Global configuration.</param>
         public void InitProcessor(CompositeProcessorContext context, object configuration)
         {
             Init(configuration);
         }
 
+        /// <summary>
+        /// Evaluates the given <see cref="ScriptDirective"/>.
+        /// </summary>
+        /// <remarks>
+        /// <para>If the given <c>directive</c> matches the <c>directiveName</c> or <c>negatedDirectiveName</c> given in the constructor,
+        /// the directive will be evaluated.</para>
+        /// 
+        /// <para>Properties replace directives have between 2 and 4 arguments:</para>
+        /// <list type="number">
+        ///     <item>
+        ///         <term><c>propertyName</c></term>
+        ///         <description>Property name.</description>
+        ///     </item>
+        ///     <item>
+        ///         <term><c>replaceValue</c> OR <c>propertyValue</c></term>
+        ///         <description>If argument count is two, value to replace in statement text if <c>propertyName</c> is defined.
+        ///         Otherwise, the value to evaluate <c>propertyName</c> against to determine replacement.</description>
+        ///     </item>
+        ///     <item>
+        ///         <term><c>replaceValue</c></term>
+        ///         <description>Value to replace in statement text if <c>propertyName</c> equals <c>propertyValue</c>, following
+        ///         the semantics described in <see cref="PropertiesEvaluator.Eval"/>.</description>
+        ///     </item>
+        ///     <item>
+        ///         <term><c>elseValue</c></term>
+        ///         <description>Value to replace in statement text if the evaluation fails. Default is the empty string.</description>
+        ///     </item>
+        /// </list>
+        /// </remarks>
+        /// <param name="context">Not used.</param>
+        /// <param name="directive"><see cref="ScriptDirective"/> to process.</param>
+        /// <returns>Appropriate <see cref="DirectiveInitialization"/> if <c>directive</c> is supported, otherwise <see langword="null" />.</returns>
         public DirectiveInitialization InitDirective(CompositeProcessorContext context, ScriptDirective directive)
         {
             bool negated;
@@ -74,6 +131,13 @@ namespace MFSJSoft.Data.Scripting.Processor
             }
         }
 
+        /// <summary>
+        /// Performs property <see cref="PropertiesEvaluator.Eval">evaluation</see> if <c>deferRuntime</c> was specified in the constructor.
+        /// </summary>
+        /// <param name="context">Not used.</param>
+        /// <param name="directive"><see cref="ScriptDirective"/> to process.</param>
+        /// <param name="initState">Processed directive argument information from <see cref="InitDirective"/>.</param>
+        /// <returns></returns>
         public DirectiveInitialization SetupDirective(CompositeProcessorContext context, ScriptDirective directive, object initState)
         {
             if (!deferRuntime)
@@ -99,6 +163,15 @@ namespace MFSJSoft.Data.Scripting.Processor
             }
         }
 
+        /// <summary>
+        /// Always returns <see langword="false"/> (does nothing). All necessary operations are performed in <see cref="InitDirective"/>
+        /// and <see cref="SetupDirective" />, if applicable.
+        /// </summary>
+        /// <param name="context"></param>
+        /// <param name="text"></param>
+        /// <param name="directive"></param>
+        /// <param name="initState"></param>
+        /// <returns><see langword="false"/></returns>
         public bool TryExecute(CompositeProcessorContext context, string text, ScriptDirective directive, object initState)
         {
             return false;
