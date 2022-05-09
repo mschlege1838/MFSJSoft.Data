@@ -63,7 +63,7 @@ namespace MFSJSoft.Data.Scripting.Processor
 
     /// <summary>
     /// Global configuration object for <see cref="CompositeProcessor"/>. It should be keyed under the <see langword="typeof">type of</see>
-    /// <see cref="CompositeProcessor"/>.
+    /// corresponding <see cref="CompositeProcessor"/>.
     /// </summary>
     public class CompositeProcessorConfiguration
     {

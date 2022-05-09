@@ -16,7 +16,7 @@ namespace MFSJSoft.Data.Scripting.Processor
     }
 
     /// <summary>
-    /// Internal base class for evaluating properties within the context of script execution. Generally, application code will
+    /// Base class for evaluating properties within the context of script execution. Generally, application code will
     /// not need to use this.
     /// </summary>
     /// <remarks>
