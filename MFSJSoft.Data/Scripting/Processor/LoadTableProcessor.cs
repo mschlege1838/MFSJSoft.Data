@@ -22,6 +22,50 @@ namespace MFSJSoft.Data.Scripting.Processor
     {
 
         /// <summary>
+        /// PostgreSQL configuration.
+        /// </summary>
+        /// <returns>PostgreSQL configuration.</returns>
+        public static LoadTableProcessorConfiguration PostgreSQLConfiguration()
+        {
+            return new LoadTableProcessorConfiguration()
+            {
+                DbTypeMapping = new Dictionary<DbType, string>()
+                {
+                    [DbType.Currency] = "money",
+                    [DbType.Guid] = "uuid",
+                    [DbType.Boolean] = "boolean",
+                    [DbType.AnsiStringFixedLength] = "character varying({0})",
+                    [DbType.StringFixedLength] = "character varying({0})",
+                    [DbType.String] = "character varying({0})",
+                    [DbType.Object] = "bytea"
+                }
+
+            };
+        }
+
+        /// <summary>
+        /// SQL Server configuration.
+        /// </summary>
+        /// <returns>SQL Server configuration.</returns>
+        public static LoadTableProcessorConfiguration SQLServerConfiguration()
+        {
+            return new LoadTableProcessorConfiguration()
+            {
+                CreateTempPrefix = "CREATE TABLE",
+                DbTypeMapping = new Dictionary<DbType, string>()
+                {
+                    [DbType.DateTimeOffset] = "datetimeoffset",
+                    [DbType.DateTime] = "datetime",
+                    [DbType.DateTime2] = "datetime2",
+                    [DbType.Currency] = "money",
+                    [DbType.Boolean] = "bit",
+                    [DbType.Binary] = "varbinary({0})",
+                    [DbType.Object] = "varbinary(max)"
+                }
+            };
+        }
+
+        /// <summary>
         /// (Optional) Create temporary table statemetn prefix.
         /// </summary>
         public string CreateTempPrefix { get; set; }
@@ -60,41 +104,42 @@ namespace MFSJSoft.Data.Scripting.Processor
 
         /// <summary>
         /// <para>>Constructor.</para>
-        /// <para>Default <see cref="DbType"/> to SQL type mapping is as follows (Non-ANSI types default to SQL Server types, but ANSI standard 
-        /// is favored where permissible):</para>
+        /// <para>Default <see cref="DbType"/> to SQL type mapping is as follows:</para>
         /// <code>
-        /// DbType.DateTimeOffset => "datetimeoffset",
-        /// DbType.DateTime or DbType.DateTime2 => "datetime",
-        /// DbType.Date => "date",
-        /// DbType.Time => "time",
+        /// DbType.DateTimeOffset => "TIMESTAMP WITH TIMEZONE",
+        /// DbType.DateTime or DbType.DateTime2 => "TIMESTAMP",
+        /// DbType.Date => "DATE",
+        /// DbType.Time => "TIME",
         /// DbType.Currency => $"DECIMAL({size}, {(scale > 0 ? scale : 4)}",
         /// DbType.Decimal => $"DECIMAL({size}, {scale})",
         /// DbType.Double => "DOUBLE PRECISION",
-        /// DbType.Single => "FLOAT",
-        /// DbType.Guid => "CHAR(16)",
-        /// DbType.Int16 or DbType.Int32 or DbType.UInt16 or DbType.UInt32 => "INTEGER",
-        /// DbType.Int64 or DbType.UInt64 => "BIGINT",
-        /// DbType.Boolean or DbType.Byte or DbType.SByte => "SMALLINT",
-        /// DbType.Binary => $"BINARY VARYING({size})",
+        /// DbType.Single => "REAL",
+        /// DbType.Guid => "CHARACTER(36)",
+        /// DbType.Int16 => "SMALLINT",
+        /// DbType.Int32 or DbType.UInt16 => "INTEGER",
+        /// DbType.Int64 or DbType.UInt64 or DbType.UInt32 => "BIGINT",
+        /// DbType.Boolean => "BIT(1)",
+        /// DbType.Byte or DbType.SByte => "SMALLINT",
+        /// DbType.Binary => $"BIT VARYING({size})",
         /// DbType.AnsiStringFixedLength => $"CHARACTER({size})",
         /// DbType.AnsiString => $"CHARACTER VARYING({size})",
         /// DbType.Object => "BLOB",
         /// DbType.StringFixedLength => $"NATIONAL CHAR({size})",
         /// DbType.VarNumeric => $"NUMERIC({size}, {scale})",
         /// DbType.Xml => "XML",
-        /// DbType.String or _ => $"NATIONAL CHAR VARYING({size})",
+        /// DbType.String => $"NATIONAL CHAR VARYING({size})",
+        ///_ => throw new NotImplementedException($"Unsupported type: {type}")
         /// </code>
         /// <para>If a <c>dbTypeMapping</c> is provided, but <see cref="DbType"/> is not contained in it, the resolved type
         /// will fall back to the above.</para>
         /// </summary>
         /// <param name="callback">Callback for client code to supply data to an initialized <see cref="DbBatchLoader"/></param>
-        /// <param name="createTempPrefix">(Optional) Create temporary table prefix. Defaults to SQL Server's regular <c>CREATE TABLE</c>.
-        /// (Temporary tables in SQL server use the regular <c>CREATE TABLE</c> statement, but are prefixed with a hash tag <c>#</c>)</param>
+        /// <param name="createTempPrefix">(Optional) Create temporary table prefix. Defaults to SQL standard <c>CREATE TEMPORARY TABLE</c>.</param>
         /// <param name="dbTypeMapping">(Optional) Mapping from <see cref="DbType"/> constants to corresponding data type names in the underlying
-        /// DB. Defaults to ANSI standard types, but falls back to SQL server types where no applicable ANSI type exists. Can be a format string;
+        /// DB. Defaults to best-effort-guess at ANSI/ISO types (author does not own a copy of the standard). Can be a format string;
         /// data type size is passed as <c>{0}</c>, and scale as <c>{1}</c>. Both size and scale default to zero if not applicable.</param>
         /// <exception cref="ArgumentNullException">If <c>callback</c> is <see langword="null" /></exception>
-        public LoadTableProcessor(WithLoader callback, string createTempPrefix = "CREATE TABLE", IDictionary<DbType, string> dbTypeMapping = null)
+        public LoadTableProcessor(WithLoader callback, string createTempPrefix = "CREATE TEMPORARY TABLE", IDictionary<DbType, string> dbTypeMapping = null)
         {
             this.callback = callback ?? throw new ArgumentNullException(nameof(callback));
             this.createTempPrefix = createTempPrefix;
@@ -329,26 +374,29 @@ namespace MFSJSoft.Data.Scripting.Processor
 
             return type switch
             {
-                DbType.DateTimeOffset => "datetimeoffset",
-                DbType.DateTime or DbType.DateTime2 => "datetime",
-                DbType.Date => "date",
-                DbType.Time => "time",
-                DbType.Currency => $"DECIMAL({size}, {(scale > 0 ? scale : 4)}",
-                DbType.Decimal => $"DECIMAL({size}, {scale})",
+                DbType.DateTimeOffset => "TIMESTAMP WITH TIMEZONE",
+                DbType.DateTime or DbType.DateTime2 => "TIMESTAMP",
+                DbType.Date => "DATE",
+                DbType.Time => "TIME",
+                DbType.Currency => $"NUMERIC({size}, {(scale > 0 ? scale : 4)}",
+                DbType.Decimal => $"NUMERIC({size}, {scale})",
                 DbType.Double => "DOUBLE PRECISION",
-                DbType.Single => "FLOAT",
-                DbType.Guid => "CHAR(16)",
-                DbType.Int16 or DbType.Int32 or DbType.UInt16 or DbType.UInt32 => "INTEGER",
-                DbType.Int64 or DbType.UInt64 => "BIGINT",
-                DbType.Boolean or DbType.Byte or DbType.SByte => "SMALLINT",
-                DbType.Binary => $"BINARY VARYING({size})",
+                DbType.Single => "REAL",
+                DbType.Guid => "CHARACTER(36)",
+                DbType.Int16 => "SMALLINT",
+                DbType.Int32 or DbType.UInt16 => "INTEGER",
+                DbType.Int64 or DbType.UInt64 or DbType.UInt32 => "BIGINT",
+                DbType.Boolean => "BIT(1)",
+                DbType.Byte or DbType.SByte => "SMALLINT",
+                DbType.Binary => $"BIT VARYING({size})",
                 DbType.AnsiStringFixedLength => $"CHARACTER({size})",
                 DbType.AnsiString => $"CHARACTER VARYING({size})",
                 DbType.Object => "BLOB",
-                DbType.StringFixedLength => $"NATIONAL CHAR({size})",
+                DbType.StringFixedLength => $"NATIONAL CHARACTER({size})",
                 DbType.VarNumeric => $"NUMERIC({size}, {scale})",
                 DbType.Xml => "XML",
-                DbType.String or _ => $"NATIONAL CHAR VARYING({size})",
+                DbType.String => $"NATIONAL CHARARACTER VARYING({size})",
+                _ => throw new NotImplementedException($"Unsupported type: {type}")
             };
         }
 
